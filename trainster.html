@@ -1,0 +1,1045 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0e0f12">
+<title>Trainster</title>
+<style>
+  html, body { margin: 0; padding: 0; background: #0e0f12; }
+  #root { min-height: 100vh; }
+  .boot { color:#8a8f9a; font-family: system-ui, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+</style>
+</head>
+<body>
+<div id="root"><div class="boot">Lade Trainster…</div></div>
+
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* Speicher: localStorage-Polyfill mit derselben async-API wie im Artifact */
+window.storage = {
+  async get(key) { const v = localStorage.getItem(key); return v == null ? null : { key, value: v }; },
+  async set(key, value) { localStorage.setItem(key, value); return { key, value }; },
+  async delete(key) { localStorage.removeItem(key); return { key, deleted: true }; },
+};
+
+/* Icons (originalgetreu aus lucide eingebettet) */
+const ICON_DATA = {"Dumbbell":"<path d=\"M17.596 12.768a2 2 0 1 0 2.829-2.829l-1.768-1.767a2 2 0 0 0 2.828-2.829l-2.828-2.828a2 2 0 0 0-2.829 2.828l-1.767-1.768a2 2 0 1 0-2.829 2.829z\" /> <path d=\"m2.5 21.5 1.4-1.4\" /> <path d=\"m20.1 3.9 1.4-1.4\" /> <path d=\"M5.343 21.485a2 2 0 1 0 2.829-2.828l1.767 1.768a2 2 0 1 0 2.829-2.829l-6.364-6.364a2 2 0 1 0-2.829 2.829l1.768 1.767a2 2 0 0 0-2.828 2.829z\" /> <path d=\"m9.6 14.4 4.8-4.8\" />","Check":"<path d=\"M20 6 9 17l-5-5\" />","X":"<path d=\"M18 6 6 18\" /> <path d=\"m6 6 12 12\" />","Pencil":"<path d=\"M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z\" /> <path d=\"m15 5 4 4\" />","Trophy":"<path d=\"M10 14.66v1.626a2 2 0 0 1-.976 1.696A5 5 0 0 0 7 21.978\" /> <path d=\"M14 14.66v1.626a2 2 0 0 0 .976 1.696A5 5 0 0 1 17 21.978\" /> <path d=\"M18 9h1.5a1 1 0 0 0 0-5H18\" /> <path d=\"M4 22h16\" /> <path d=\"M6 9a6 6 0 0 0 12 0V3a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1z\" /> <path d=\"M6 9H4.5a1 1 0 0 1 0-5H6\" />","ChevronRight":"<path d=\"m9 18 6-6-6-6\" />","ChevronLeft":"<path d=\"m15 18-6-6 6-6\" />","Flame":"<path d=\"M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4\" />","Copy":"<rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /> <path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />","RotateCcw":"<path d=\"M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8\" /> <path d=\"M3 3v5h5\" />","Plus":"<path d=\"M5 12h14\" /> <path d=\"M12 5v14\" />","Minus":"<path d=\"M5 12h14\" />","Play":"<path d=\"M5 5a2 2 0 0 1 3.008-1.728l11.997 6.998a2 2 0 0 1 .003 3.458l-12 7A2 2 0 0 1 5 19z\" />","ArrowRight":"<path d=\"M5 12h14\" /> <path d=\"m12 5 7 7-7 7\" />","Activity":"<path d=\"M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2\" />","Library":"<path d=\"m16 6 4 14\" /> <path d=\"M12 6v14\" /> <path d=\"M8 8v12\" /> <path d=\"M4 4v16\" />","Trash2":"<path d=\"M10 11v6\" /> <path d=\"M14 11v6\" /> <path d=\"M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6\" /> <path d=\"M3 6h18\" /> <path d=\"M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2\" />","CopyPlus":"<line x1=\"15\" x2=\"15\" y1=\"12\" y2=\"18\" /> <line x1=\"12\" x2=\"18\" y1=\"15\" y2=\"15\" /> <rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\" /> <path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\" />","Download":"<path d=\"M12 15V3\" /> <path d=\"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4\" /> <path d=\"m7 10 5 5 5-5\" />","Clock":"<circle cx=\"12\" cy=\"12\" r=\"10\" /> <path d=\"M12 6v6l4 2\" />","Layers":"<path d=\"M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z\" /> <path d=\"M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12\" /> <path d=\"M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17\" />","ChevronDown":"<path d=\"m6 9 6 6 6-6\" />"};
+function makeIcon(inner) {
+  return function Icon({ size = 24, color, style, ...rest }) {
+    return React.createElement("svg", {
+      width: size, height: size, viewBox: "0 0 24 24", fill: "none",
+      stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round",
+      style: { color, ...(style || {}) },
+      dangerouslySetInnerHTML: { __html: inner }, ...rest,
+    });
+  };
+}
+const ICONS = {};
+for (const k in ICON_DATA) ICONS[k] = makeIcon(ICON_DATA[k]);
+const {
+  Dumbbell, Check, X, Pencil, Trophy, ChevronRight, ChevronLeft, Flame, Copy,
+  RotateCcw, Plus, Minus, Play, ArrowRight, Activity, Library, Trash2, CopyPlus,
+  Download, Clock, Layers, ChevronDown
+} = ICONS;
+
+/* ===== App ===== */
+/* ============================================================
+   THEME — "Jarvis Training Console"
+   ============================================================ */
+const FONT_LINK =
+  "https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap";
+
+const C = {
+  bg: "#0e0f12",
+  bgGrad: "radial-gradient(1200px 600px at 50% -10%, #1b1d23 0%, #0e0f12 60%)",
+  surface: "#16181d",
+  surface2: "#1d2027",
+  line: "#2a2e37",
+  text: "#f3f0e9",
+  muted: "#8a8f9a",
+  gold: "#f5a623",
+  goldSoft: "rgba(245,166,35,0.12)",
+  mint: "#3ddc97",
+  mintSoft: "rgba(61,220,151,0.12)",
+  clay: "#e5645b",
+  claySoft: "rgba(229,100,91,0.12)",
+};
+const display = { fontFamily: "'Anton', system-ui, sans-serif", letterSpacing: "0.01em" };
+const body = { fontFamily: "'Archivo', system-ui, sans-serif" };
+
+const uid = (p) => p + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+
+/* Einheiten-Konvention: "Einheit N" ist gesetzt (Nummer = Position), Bezeichnung optional. */
+const unitTitle = (index, label) => {
+  const base = `Einheit ${index + 1}`;
+  return label && String(label).trim() ? `${base} · ${String(label).trim()}` : base;
+};
+/* Migration: altes day.name -> neues day.label (Nummer/Präfix wird abgestreift). */
+function migratePlan(p) {
+  if (!p || !Array.isArray(p.days)) return p;
+  return {
+    ...p,
+    days: p.days.map((d) => {
+      if (d.label !== undefined && d.name === undefined) return d;
+      let label = d.label;
+      if (label === undefined) {
+        const raw = typeof d.name === "string" ? d.name : "";
+        label = raw.replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
+      }
+      const { name, ...rest } = d;
+      return { ...rest, label: label || "" };
+    }),
+  };
+}
+
+/* ============================================================
+   SEED-PLAN — Laurins 2er-Split
+   ============================================================ */
+const SEED_PLAN = {
+  id: "seed_split",
+  name: "Hypertrophie 2er-Split",
+  days: [
+    {
+      id: "tag1", label: "Oberkörper",
+      exercises: [
+        { id: "t1_warm", type: "duration", name: "Aufwärmen", minutes: 8, desc: "Lockeres Cardio plus Schulter- und Brustmobilisation.", hint: "Puls hochfahren, Gelenke öffnen — noch keine Maximalkraft." },
+        { id: "t1_bank", type: "strength", name: "Bankdrücken / Brustpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Brust, vordere Schulter, Trizeps.", hint: "Schulterblätter zusammen und nach unten, kontrollierte Exzentrik." },
+        { id: "t1_lat", type: "strength", name: "Latzug", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Breiter Rücken (Latissimus).", hint: "Brust raus, Stange zur oberen Brust, nicht im Schwung." },
+        { id: "t1_press", type: "strength", name: "Schulterdrücken", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Vordere und seitliche Schulter.", hint: "Rumpf fest, nicht ins Hohlkreuz drücken." },
+        { id: "t1_row", type: "strength", name: "Kabelrudern", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Mittlerer Rücken.", hint: "Ellbogen eng am Körper, Schulterblätter aktiv." },
+        { id: "t1_fly", type: "strength", name: "Fly", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Brust-Isolation.", hint: "Leichte Ellbogenbeugung halten, Dehnung spüren." },
+        { id: "t1_tri", type: "strength", name: "Trizeps-Pushdown", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Trizeps-Isolation.", hint: "Ellbogen fixiert am Körper." },
+        { id: "t1_bi", type: "strength", name: "Bizeps-Curl", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Bizeps-Isolation.", hint: "Kein Schwung aus dem Rücken." },
+        { id: "t1_side", type: "strength", name: "Seitheben", optional: true, sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Seitliche Schulter. Optional.", hint: "Leichtes Gewicht, Ellbogen führt." },
+        { id: "t1_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Laufband, Zone 2.", hint: "Lockeres Tempo — du könntest noch sprechen." },
+      ],
+    },
+    {
+      id: "tag2", label: "Unterkörper + Rumpf",
+      exercises: [
+        { id: "t2_warm", type: "duration", name: "Aufwärmen", minutes: 8, desc: "Lockeres Cardio + Hüft-/Kniemobilisation, 1–2 leichte Aufwärmsätze Kniebeuge.", hint: "Gelenke vorbereiten, Bewegungsumfang öffnen." },
+        { id: "t2_squat", type: "strength", name: "Kniebeuge", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 150, desc: "Beine gesamt, Rumpf.", hint: "Knie in Zehenrichtung, Tiefe so weit Technik sauber bleibt." },
+        { id: "t2_legpress", type: "strength", name: "Beinpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Quadrizeps, Gesäß.", hint: "Knie nicht ganz durchstrecken, Füße schulterbreit." },
+        { id: "t2_rdl", type: "strength", name: "Rumänisches Kreuzheben", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Beinbeuger, Gesäß. Alt.: Beinbeuger-Maschine.", hint: "Hüfte nach hinten, Rücken neutral, leichte Kniebeugung." },
+        { id: "t2_legext", type: "strength", name: "Beinstrecker", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Quadrizeps-Isolation.", hint: "Oben kurz halten, kontrolliert ablassen." },
+        { id: "t2_calf", type: "strength", name: "Wadenheben", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Waden.", hint: "Volle Streckung oben, Dehnung unten." },
+        { id: "t2_abs", type: "strength", name: "Bauch", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Bauch-Maschine oder Crunch (Gewicht 0 = Körpergewicht).", hint: "Bewegung aus dem Bauch, nicht aus dem Nacken." },
+        { id: "t2_plank", type: "hold", name: "Plank", sets: 3, seconds: 40, rest: 60, desc: "Statische Rumpfspannung.", hint: "Gerade Linie Kopf–Hüfte–Ferse, Po anspannen." },
+        { id: "t2_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Rudergerät, Zone 2.", hint: "Lockeres Tempo, Puls oben halten." },
+      ],
+    },
+  ],
+};
+
+/* ============================================================
+   STORAGE
+   ============================================================ */
+async function sGet(key) {
+  try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } catch { return null; }
+}
+async function sSet(key, val) { try { await window.storage.set(key, JSON.stringify(val)); } catch {} }
+async function sDel(key) { try { await window.storage.delete(key); } catch {} }
+
+/* ============================================================
+   LOGIK
+   ============================================================ */
+function evalStrength(ex, sets) {
+  const statuses = sets.map((s) => { const r = Number(s.reps) || 0; return r >= ex.repsMax ? 2 : r >= ex.repsMin ? 1 : 0; });
+  const min = Math.min(...statuses);
+  let res = min === 0 ? "verfehlt" : min === 2 ? "uebertroffen" : "erreicht";
+  const avgW = sets.reduce((a, s) => a + (Number(s.weight) || 0), 0) / sets.length;
+  if (avgW > (ex.weight || 0) && min >= 1) res = "uebertroffen";
+  return res;
+}
+function evalHold(ex, sets) {
+  const min = Math.min(...sets.map((s) => Number(s.seconds) || 0));
+  return min >= ex.seconds * 1.15 ? "uebertroffen" : min >= ex.seconds ? "erreicht" : "verfehlt";
+}
+function volumeOf(entry) {
+  if (entry.type !== "strength") return 0;
+  return entry.actual.reduce((a, s) => a + (Number(s.reps) || 0) * (Number(s.weight) || 0), 0);
+}
+const EVAL_META = {
+  uebertroffen: { label: "Übertroffen", color: C.mint, soft: C.mintSoft, icon: Trophy },
+  erreicht: { label: "Erreicht", color: C.gold, soft: C.goldSoft, icon: Check },
+  verfehlt: { label: "Verfehlt", color: C.clay, soft: C.claySoft, icon: X },
+  erledigt: { label: "Erledigt", color: C.gold, soft: C.goldSoft, icon: Check },
+};
+
+function buildExport(session) {
+  const lines = [];
+  lines.push(`TRAININGS-LOG — ${session.dateISO.slice(0, 10)}`);
+  lines.push(`${session.planName} · ${session.dayName}`);
+  const vol = session.entries.reduce((a, e) => a + volumeOf(e), 0);
+  lines.push(`Gesamtvolumen: ${vol.toLocaleString("de-DE")} kg`);
+  lines.push("");
+  session.entries.forEach((e) => {
+    if (e.type === "duration") {
+      lines.push(`${e.name} — ${e.actual.done ? "erledigt" : "ausgelassen"} (${e.actual.minutes} min, Soll ${e.target.minutes} min)`);
+    } else if (e.type === "hold") {
+      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}`);
+      lines.push(`  Soll: ${e.target.sets}× ${e.target.seconds}s`);
+      lines.push(`  Ist:  ${e.actual.map((s) => `${s.seconds}s`).join(", ")}`);
+    } else {
+      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}`);
+      lines.push(`  Soll: ${e.target.sets}×${e.target.repsMin}–${e.target.repsMax} @ ${e.target.weight} kg`);
+      lines.push(`  Ist:  ${e.actual.map((s) => `${s.reps}@${s.weight}`).join(", ")}`);
+    }
+  });
+  lines.push("");
+  lines.push("— Laurins Trainings-App → an Jarvis zum Tracken in Notion —");
+  return lines.join("\n");
+}
+
+/* Plan-Import: tolerantes Parsen + Validierung */
+function parsePlan(raw) {
+  let obj;
+  try { obj = JSON.parse(raw); } catch { return { error: "Kein gültiges JSON." }; }
+  if (!obj || typeof obj.name !== "string" || !Array.isArray(obj.days) || obj.days.length === 0)
+    return { error: "Plan braucht ein 'name'-Feld und mindestens eine Einheit in 'days'." };
+  const plan = { id: uid("p_"), name: obj.name.trim() || "Importierter Plan", days: [] };
+  for (const d of obj.days) {
+    if (!d || !Array.isArray(d.exercises)) return { error: "Jede Einheit braucht ein 'exercises'-Array." };
+    const lbl = (typeof d.name === "string" ? d.name : "").replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
+    const day = { id: uid("d_"), label: lbl, exercises: [] };
+    for (const e of d.exercises) {
+      const type = ["strength", "duration", "hold"].includes(e.type) ? e.type : "strength";
+      const base = { id: uid("e_"), type, name: (e.name || "Übung").trim(), desc: e.desc || "", hint: e.hint || "" };
+      if (type === "duration") day.exercises.push({ ...base, minutes: Number(e.minutes) || 10 });
+      else if (type === "hold") day.exercises.push({ ...base, sets: Number(e.sets) || 3, seconds: Number(e.seconds) || 30, rest: Number(e.rest) || 60 });
+      else day.exercises.push({ ...base, optional: !!e.optional, sets: Number(e.sets) || 3, repsMin: Number(e.repsMin) || 8, repsMax: Number(e.repsMax) || 12, weight: Number(e.weight) || 0, rest: Number(e.rest) || 90 });
+    }
+    plan.days.push(day);
+  }
+  return { plan };
+}
+
+/* ============================================================
+   BAUSTEINE
+   ============================================================ */
+function Stepper({ value, onChange, step = 1, min = 0, suffix = "" }) {
+  const btn = { width: 36, height: 36, borderRadius: 10, border: `1px solid ${C.line}`, background: C.surface2, color: C.text, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 };
+  return (
+    <div className="flex items-center gap-2">
+      <button style={btn} onClick={() => onChange(Math.max(min, +(Number(value) - step).toFixed(2)))}><Minus size={15} /></button>
+      <div className="flex items-baseline justify-center" style={{ minWidth: 58 }}>
+        <input value={value} inputMode="decimal"
+          onChange={(e) => { const v = e.target.value.replace(/[^0-9.,]/g, "").replace(",", "."); onChange(v === "" ? 0 : Number(v)); }}
+          className="text-center" style={{ ...display, fontSize: 24, width: 50, background: "transparent", color: C.text, border: "none", outline: "none" }} />
+        {suffix && <span style={{ ...body, color: C.muted, fontSize: 13 }}>{suffix}</span>}
+      </div>
+      <button style={btn} onClick={() => onChange(+(Number(value) + step).toFixed(2))}><Plus size={15} /></button>
+    </div>
+  );
+}
+function Pill({ children, color = C.muted, bg = "transparent" }) {
+  return <span style={{ ...body, fontSize: 11, fontWeight: 600, color, background: bg, border: `1px solid ${color}33`, padding: "3px 9px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{children}</span>;
+}
+function Row({ k, v, accent }) {
+  return (
+    <div className="flex items-center justify-between" style={{ padding: "7px 0", borderBottom: `1px solid ${C.line}` }}>
+      <span style={{ ...body, fontSize: 12, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</span>
+      <span style={{ ...body, fontSize: 14, color: accent ? C.gold : C.text, fontWeight: accent ? 700 : 500 }}>{v}</span>
+    </div>
+  );
+}
+function FinishBtn({ label, onClick, color = C.gold }) {
+  return (
+    <button onClick={onClick} className="flex items-center justify-center gap-2"
+      style={{ width: "100%", background: color, color: "#0e0f12", border: "none", borderRadius: 14, padding: "16px", cursor: "pointer", ...display, fontSize: 17, letterSpacing: "0.02em" }}>
+      {label} <ArrowRight size={18} />
+    </button>
+  );
+}
+const inputStyle = { width: "100%", background: C.bg, color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", ...body, fontSize: 14, outline: "none" };
+
+/* ============================================================
+   APP
+   ============================================================ */
+function Splash() {
+  return (
+    <div style={{ ...body, position: "relative", overflow: "hidden", background: C.bgGrad, color: C.text, minHeight: 600, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "spOut .45s ease 3.5s forwards" }}>
+      <style>{`
+        @import url('${FONT_LINK}');
+        @keyframes spLogo { 0%{opacity:0; transform: scale(.55) translateY(10px);} 65%{opacity:1; transform: scale(1.06) translateY(0);} 100%{opacity:1; transform: scale(1);} }
+        @keyframes spLift { 0%,100%{ transform: translateY(0) rotate(0deg);} 50%{ transform: translateY(-4px) rotate(-3deg);} }
+        @keyframes spWord { 0%{opacity:0; transform: translateY(16px); letter-spacing:.35em;} 100%{opacity:1; transform:none; letter-spacing:.02em;} }
+        @keyframes spFadeUp { 0%{opacity:0; transform: translateY(8px);} 100%{opacity:1; transform:none;} }
+        @keyframes spLine { 0%{transform:scaleX(0); opacity:0;} 100%{transform:scaleX(1); opacity:1;} }
+        @keyframes spBar { 0%{width:0;} 100%{width:100%;} }
+        @keyframes spGlow { 0%,100%{opacity:.4; transform:scale(1);} 50%{opacity:.85; transform:scale(1.12);} }
+        @keyframes spOut { to{ opacity:0; transform: scale(1.015); } }
+      `}</style>
+
+      <div style={{ position: "absolute", width: 280, height: 280, borderRadius: "50%", top: "30%",
+        background: `radial-gradient(circle, ${C.gold}33 0%, transparent 70%)`, filter: "blur(6px)", animation: "spGlow 2.2s ease-in-out infinite" }} />
+
+      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ animation: "spLogo 1s cubic-bezier(.2,.8,.3,1.2) both" }}>
+          <div style={{ width: 76, height: 76, borderRadius: 18, background: C.gold, display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: `0 14px 44px ${C.gold}55`, animation: "spLift 2.4s ease-in-out 1s infinite" }}>
+            <Dumbbell size={40} color="#0e0f12" />
+          </div>
+        </div>
+
+        <div style={{ ...display, fontSize: 46, marginTop: 22, lineHeight: 1, animation: "spWord .8s ease .6s both" }}>TRAINSTER</div>
+
+        <div style={{ width: 120, height: 2, background: C.gold, marginTop: 12, transformOrigin: "center", animation: "spLine .6s ease 1.1s both" }} />
+
+        <div style={{ ...body, fontSize: 12, color: C.muted, marginTop: 12, letterSpacing: "0.22em", textTransform: "uppercase",
+          animation: "spFadeUp .6s ease 1.5s both" }}>by Laurin Inc.</div>
+      </div>
+
+      <div style={{ position: "absolute", bottom: 52, width: 160, height: 3, background: C.surface2, borderRadius: 999, overflow: "hidden" }}>
+        <div style={{ height: "100%", background: C.gold, borderRadius: 999, animation: "spBar 3.3s ease-out .3s both" }} />
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [ready, setReady] = useState(false);
+  const [showSplash, setShowSplash] = useState(true);
+  const [plans, setPlans] = useState([SEED_PLAN]);
+  const [logs, setLogs] = useState([]);
+  const [view, setView] = useState("library"); // library | editor | import | home | workout | result | rest | summary
+  const [resumable, setResumable] = useState(null);
+
+  const [activePlanId, setActivePlanId] = useState(null);
+  const [editorPlan, setEditorPlan] = useState(null);
+  const [editorOpenDay, setEditorOpenDay] = useState(null);
+
+  const [dayId, setDayId] = useState(null);
+  const [idx, setIdx] = useState(0);
+  const [entries, setEntries] = useState([]);
+  const [draft, setDraft] = useState(null);
+  const [editing, setEditing] = useState(false);
+  const [lastResult, setLastResult] = useState(null);
+
+  useEffect(() => {
+    (async () => {
+      let p = await sGet("trainster:plans:v1");
+      if (!p) { const legacy = await sGet("trainster:plan:v1"); p = legacy ? [legacy] : [SEED_PLAN]; }
+      p = p.map(migratePlan);
+      await sSet("trainster:plans:v1", p);
+      setPlans(p);
+      const l = await sGet("trainster:logs:v1"); if (l) setLogs(l);
+      const active = await sGet("trainster:active:v1");
+      if (active) { const pl = p.find((x) => x.id === active.planId); const d = pl?.days.find((x) => x.id === active.dayId); if (d && active.entries.length < d.exercises.length) setResumable(active); }
+      setReady(true);
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const t = setTimeout(() => setShowSplash(false), 4000);
+    return () => clearTimeout(t);
+  }, [ready]);
+
+  const savePlans = (next) => { setPlans(next); sSet("trainster:plans:v1", next); };
+  const activePlan = plans.find((p) => p.id === activePlanId);
+  const day = activePlan?.days.find((d) => d.id === dayId);
+  const dayIndex = activePlan ? activePlan.days.findIndex((d) => d.id === dayId) : -1;
+  const dayTitle = day ? unitTitle(dayIndex, day.label) : "";
+  const exercises = day ? day.exercises : [];
+  const exercise = exercises[idx];
+
+  function updateTarget(patch) {
+    const next = plans.map((p) => p.id !== activePlanId ? p : {
+      ...p, days: p.days.map((d) => d.id !== dayId ? d : { ...d, exercises: d.exercises.map((e) => e.id !== exercise.id ? e : { ...e, ...patch }) }),
+    });
+    savePlans(next);
+  }
+
+  function seedDraftFor(ex) {
+    if (!ex) return;
+    if (ex.type === "strength") setDraft({ sets: Array.from({ length: ex.sets }, () => ({ reps: ex.repsMin, weight: ex.weight })) });
+    else if (ex.type === "hold") setDraft({ sets: Array.from({ length: ex.sets }, () => ({ seconds: ex.seconds })) });
+    else setDraft({ done: true, minutes: ex.minutes });
+  }
+
+  function openPlan(id) { setActivePlanId(id); setView("home"); }
+  function goLibrary() { setActivePlanId(null); setDayId(null); setEntries([]); setIdx(0); setLastResult(null); setView("library"); }
+
+  function startDay(id, resume) {
+    setDayId(id);
+    const pl = plans.find((p) => p.id === activePlanId);
+    const exs = pl.days.find((d) => d.id === id).exercises;
+    if (resume) { setEntries(resume.entries); setIdx(resume.entries.length); setResumable(null); seedDraftFor(exs[resume.entries.length]); }
+    else { setEntries([]); setIdx(0); sDel("trainster:active:v1"); seedDraftFor(exs[0]); }
+    setEditing(false); setView("workout");
+  }
+
+  function finishExercise() {
+    let entry;
+    if (exercise.type === "strength") {
+      const evaluation = evalStrength(exercise, draft.sets);
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "strength", target: { sets: exercise.sets, repsMin: exercise.repsMin, repsMax: exercise.repsMax, weight: exercise.weight }, actual: draft.sets.map((s) => ({ reps: Number(s.reps) || 0, weight: Number(s.weight) || 0 })), evaluation };
+    } else if (exercise.type === "hold") {
+      const evaluation = evalHold(exercise, draft.sets);
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "hold", target: { sets: exercise.sets, seconds: exercise.seconds }, actual: draft.sets.map((s) => ({ seconds: Number(s.seconds) || 0 })), evaluation };
+    } else {
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "duration", target: { minutes: exercise.minutes }, actual: { done: draft.done, minutes: Number(draft.minutes) || 0 }, evaluation: draft.done ? "erledigt" : "verfehlt" };
+    }
+    const newEntries = [...entries, entry];
+    setEntries(newEntries); setLastResult(entry);
+    sSet("trainster:active:v1", { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries: newEntries });
+    setView("result");
+  }
+  function afterResult() { if (idx + 1 >= exercises.length) finishSession(); else setView("rest"); }
+  function gotoNext() { const n = idx + 1; setIdx(n); seedDraftFor(exercises[n]); setEditing(false); setView("workout"); }
+  function finishSession() {
+    const session = { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries };
+    const newLogs = [session, ...logs].slice(0, 80);
+    setLogs(newLogs); sSet("trainster:logs:v1", newLogs); sDel("trainster:active:v1"); setView("summary");
+  }
+  function exitToPlanHome() { setEntries([]); setIdx(0); setLastResult(null); setView("home"); }
+
+  /* Plan-CRUD */
+  function newPlan() { setEditorPlan({ id: uid("p_"), name: "", days: [] }); setEditorOpenDay(null); setView("editor"); }
+  function editPlan(id, openDayId) { setEditorPlan(JSON.parse(JSON.stringify(plans.find((p) => p.id === id)))); setEditorOpenDay(openDayId || null); setView("editor"); }
+  function duplicateUnit(dayId) {
+    const next = plans.map((p) => {
+      if (p.id !== activePlanId) return p;
+      const i = p.days.findIndex((d) => d.id === dayId);
+      if (i < 0) return p;
+      const src = p.days[i];
+      const copy = { ...src, id: uid("d_"), exercises: src.exercises.map((e) => ({ ...e, id: uid("e_") })) };
+      return { ...p, days: [...p.days.slice(0, i + 1), copy, ...p.days.slice(i + 1)] };
+    });
+    savePlans(next);
+  }
+  function deleteUnit(dayId) {
+    const next = plans.map((p) => p.id !== activePlanId ? p : { ...p, days: p.days.filter((d) => d.id !== dayId) });
+    savePlans(next);
+  }
+  function savePlanFromEditor(p) {
+    const exists = plans.some((x) => x.id === p.id);
+    savePlans(exists ? plans.map((x) => x.id === p.id ? p : x) : [...plans, p]);
+    setEditorPlan(null); setView("library");
+  }
+  function deletePlan(id) { savePlans(plans.filter((p) => p.id !== id)); }
+  function duplicatePlan(id) {
+    const src = plans.find((p) => p.id === id);
+    const copy = JSON.parse(JSON.stringify(src));
+    copy.id = uid("p_"); copy.name = src.name + " (Kopie)";
+    copy.days = copy.days.map((d) => ({ ...d, id: uid("d_"), exercises: d.exercises.map((e) => ({ ...e, id: uid("e_") })) }));
+    savePlans([...plans, copy]);
+  }
+  function importPlan(plan) { savePlans([...plans, plan]); setView("library"); }
+
+  const subtitle = ["home", "workout", "result", "rest", "summary"].includes(view) && activePlan
+    ? activePlan.name : view === "editor" ? "Plan-Editor" : view === "import" ? "Plan importieren" : `Bibliothek · ${plans.length} ${plans.length === 1 ? "Plan" : "Pläne"}`;
+
+  if (showSplash || !ready) return <Splash />;
+
+  return (
+    <div style={{ ...body, background: C.bgGrad, color: C.text, minHeight: 600 }}>
+      <style>{`
+        @import url('${FONT_LINK}');
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        ::selection { background: ${C.gold}; color: #000; }
+        @keyframes rise { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform:none;} }
+        @keyframes pop { 0%{transform:scale(.85);opacity:0;} 100%{transform:scale(1);opacity:1;} }
+        .rise { animation: rise .35s ease both; }
+        .pop { animation: pop .3s cubic-bezier(.2,.8,.3,1.2) both; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
+        textarea:focus, input:focus { border-color: ${C.gold}66; }
+      `}</style>
+
+      <div style={{ maxWidth: 460, margin: "0 auto", padding: "22px 18px 40px" }}>
+        {/* HEADER */}
+        <div className="flex items-center justify-between" style={{ marginBottom: 22 }}>
+          <div className="flex items-center gap-2">
+            <div style={{ width: 30, height: 30, borderRadius: 8, background: C.gold, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Dumbbell size={17} color="#0e0f12" />
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6, lineHeight: 1 }}>
+                <span style={{ ...display, fontSize: 16, lineHeight: 1 }}>TRAINSTER</span>
+                <span style={{ ...body, fontSize: 9, color: C.muted, letterSpacing: "0.04em", whiteSpace: "nowrap", lineHeight: 1 }}>by Laurin Inc.</span>
+              </div>
+              <div style={{ ...body, fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>{subtitle}</div>
+            </div>
+          </div>
+          {view === "home" && (
+            <button onClick={goLibrary} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>
+              <Library size={14} /> Bibliothek
+            </button>
+          )}
+          {["workout", "result", "rest"].includes(view) && (
+            <button onClick={exitToPlanHome} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Beenden</button>
+          )}
+          {(view === "editor" || view === "import") && (
+            <button onClick={() => { setEditorPlan(null); setView("library"); }} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Abbrechen</button>
+          )}
+        </div>
+
+        {view === "library" && <LibraryView plans={plans} logs={logs} onOpen={openPlan} onNew={newPlan} onImport={() => setView("import")} onEdit={editPlan} onDuplicate={duplicatePlan} onDelete={deletePlan} />}
+        {view === "editor" && editorPlan && <PlanEditor initial={editorPlan} openId={editorOpenDay} onSave={savePlanFromEditor} />}
+        {view === "import" && <ImportView onImport={importPlan} />}
+        {view === "home" && activePlan && <Home plan={activePlan} logs={logs} resumable={resumable && resumable.planId === activePlan.id ? resumable : null} onStart={startDay} onEditDay={(dayId) => editPlan(activePlan.id, dayId)} onDuplicateDay={duplicateUnit} onDeleteDay={deleteUnit} />}
+        {view === "workout" && exercise && <Workout key={exercise.id} ex={exercise} idx={idx} total={exercises.length} draft={draft} setDraft={setDraft} editing={editing} setEditing={setEditing} updateTarget={updateTarget} onFinish={finishExercise} history={logs} />}
+        {view === "result" && lastResult && <Result entry={lastResult} idx={idx} total={exercises.length} onContinue={afterResult} />}
+        {view === "rest" && <Rest seconds={exercise?.rest || 90} nextEx={exercises[idx + 1]} onDone={gotoNext} />}
+        {view === "summary" && <Summary plan={activePlan} dayId={dayId} entries={entries} logs={logs} onReset={exitToPlanHome} onLibrary={goLibrary} />}
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   LIBRARY (Launcher)
+   ============================================================ */
+function LibraryView({ plans, logs, onOpen, onNew, onImport, onEdit, onDuplicate, onDelete }) {
+  const [confirmDel, setConfirmDel] = useState(null);
+  return (
+    <div className="rise">
+      <div style={{ ...display, fontSize: 26, marginBottom: 4 }}>Meine Pläne</div>
+      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 18 }}>Plan wählen, um zu trainieren — oder einen neuen anlegen.</div>
+
+      <div className="flex flex-col gap-3" style={{ marginBottom: 18 }}>
+        {plans.length === 0 && (
+          <div style={{ ...body, fontSize: 14, color: C.muted, background: C.surface, border: `1px dashed ${C.line}`, borderRadius: 14, padding: "22px 16px", textAlign: "center" }}>
+            Noch keine Pläne. Leg einen an oder lass dir von Jarvis einen bauen und importiere ihn.
+          </div>
+        )}
+        {plans.map((p) => {
+          const lastLog = logs.find((l) => l.planId === p.id);
+          const totalEx = p.days.reduce((a, d) => a + d.exercises.length, 0);
+          return (
+            <div key={p.id} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
+              <button onClick={() => onOpen(p.id)} className="flex items-center justify-between" style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "16px 18px 12px", cursor: "pointer", color: C.text }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ ...display, fontSize: 21, lineHeight: 1.1, marginBottom: 6 }}>{p.name || "Unbenannter Plan"}</div>
+                  <div className="flex items-center gap-3" style={{ ...body, fontSize: 12, color: C.muted }}>
+                    <span className="flex items-center gap-1"><Layers size={12} /> {p.days.length} {p.days.length === 1 ? "Einheit" : "Einheiten"}</span>
+                    <span className="flex items-center gap-1"><Dumbbell size={12} /> {totalEx} Übungen</span>
+                    {lastLog && <span>· zuletzt {lastLog.dateISO.slice(8, 10)}.{lastLog.dateISO.slice(5, 7)}.</span>}
+                  </div>
+                </div>
+                <Play size={20} color={C.gold} />
+              </button>
+              <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
+                <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => onEdit(p.id)} />
+                <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => onDuplicate(p.id)} />
+                <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDel(p.id)} />
+              </div>
+              {confirmDel === p.id && (
+                <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
+                  <span style={{ ...body, fontSize: 13, color: C.text }}>Plan wirklich löschen?</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setConfirmDel(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
+                    <button onClick={() => { onDelete(p.id); setConfirmDel(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="flex gap-3">
+        <button onClick={onNew} className="flex items-center justify-center gap-2" style={{ flex: 1, background: C.gold, color: "#0e0f12", border: "none", borderRadius: 14, padding: "14px", cursor: "pointer", ...display, fontSize: 15 }}>
+          <Plus size={18} /> Neuer Plan
+        </button>
+        <button onClick={onImport} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.text, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px", cursor: "pointer", ...body, fontSize: 14, fontWeight: 600 }}>
+          <Download size={16} /> Importieren
+        </button>
+      </div>
+    </div>
+  );
+}
+function ActBtn({ icon: Icon, label, onClick, danger }) {
+  return (
+    <button onClick={onClick} className="flex items-center justify-center gap-1" style={{ flex: 1, background: "transparent", border: "none", padding: "11px 0", cursor: "pointer", color: danger ? C.clay : C.muted, ...body, fontSize: 12 }}>
+      <Icon size={14} /> {label}
+    </button>
+  );
+}
+
+/* ============================================================
+   PLAN-EDITOR
+   ============================================================ */
+function PlanEditor({ initial, openId, onSave }) {
+  const [plan, setPlan] = useState(initial);
+  const [openDay, setOpenDay] = useState(openId || null);
+  const [adding, setAdding] = useState(null); // dayId für offenes Übungsformular
+  const [confirmDelDay, setConfirmDelDay] = useState(null);
+
+  const setName = (name) => setPlan({ ...plan, name });
+  const addDay = () => { const d = { id: uid("d_"), label: "", exercises: [] }; setPlan({ ...plan, days: [...plan.days, d] }); setOpenDay(d.id); };
+  const setLabel = (id, label) => setPlan({ ...plan, days: plan.days.map((d) => d.id === id ? { ...d, label } : d) });
+  const delDay = (id) => setPlan({ ...plan, days: plan.days.filter((d) => d.id !== id) });
+  const duplicateDay = (id) => {
+    const i = plan.days.findIndex((d) => d.id === id);
+    if (i < 0) return;
+    const src = plan.days[i];
+    const copy = { ...src, id: uid("d_"), exercises: src.exercises.map((e) => ({ ...e, id: uid("e_") })) };
+    setPlan({ ...plan, days: [...plan.days.slice(0, i + 1), copy, ...plan.days.slice(i + 1)] });
+    setOpenDay(copy.id);
+  };
+  const addExercise = (dayId, ex) => setPlan({ ...plan, days: plan.days.map((d) => d.id === dayId ? { ...d, exercises: [...d.exercises, { ...ex, id: uid("e_") }] } : d) });
+  const delExercise = (dayId, exId) => setPlan({ ...plan, days: plan.days.map((d) => d.id === dayId ? { ...d, exercises: d.exercises.filter((e) => e.id !== exId) } : d) });
+
+  const canSave = plan.name.trim() && plan.days.length > 0 && plan.days.every((d) => d.exercises.length > 0);
+
+  return (
+    <div className="rise">
+      <label style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Plan-Name</label>
+      <input value={plan.name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Push/Pull/Beine" style={{ ...inputStyle, marginTop: 6, marginBottom: 18, ...display, fontSize: 20 }} />
+
+      <div className="flex flex-col gap-3">
+        {plan.days.map((d, i) => (
+          <div key={d.id} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, overflow: "hidden" }}>
+            <div className="flex items-center gap-2" style={{ padding: "12px 14px" }}>
+              <button onClick={() => setOpenDay(openDay === d.id ? null : d.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.muted, display: "flex" }}>
+                <ChevronDown size={18} style={{ transform: openDay === d.id ? "none" : "rotate(-90deg)", transition: "transform .2s" }} />
+              </button>
+              <span style={{ ...display, fontSize: 17, color: C.text, whiteSpace: "nowrap" }}>Einheit {i + 1}</span>
+              <span style={{ color: C.muted }}>·</span>
+              <input value={d.label || ""} onChange={(e) => setLabel(d.id, e.target.value)} placeholder="Bezeichnung (optional)" style={{ ...inputStyle, flex: 1, padding: "7px 10px", border: "none", background: "transparent", ...body, fontSize: 14 }} />
+              <span style={{ ...body, fontSize: 12, color: C.muted }}>{d.exercises.length}</span>
+            </div>
+            <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
+              <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => setOpenDay(openDay === d.id ? null : d.id)} />
+              <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => duplicateDay(d.id)} />
+              <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDelDay(d.id)} />
+            </div>
+            {confirmDelDay === d.id && (
+              <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
+                <span style={{ ...body, fontSize: 13, color: C.text }}>Einheit wirklich löschen?</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setConfirmDelDay(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
+                  <button onClick={() => { delDay(d.id); setConfirmDelDay(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
+                </div>
+              </div>
+            )}
+            {openDay === d.id && (
+              <div style={{ padding: "0 14px 14px" }}>
+                {d.exercises.map((e) => (
+                  <div key={e.id} className="flex items-center justify-between" style={{ padding: "8px 0", borderTop: `1px solid ${C.line}` }}>
+                    <div>
+                      <div style={{ ...body, fontSize: 14 }}>{e.name}</div>
+                      <div style={{ ...body, fontSize: 11, color: C.muted }}>
+                        {e.type === "strength" ? `${e.sets}×${e.repsMin}–${e.repsMax} @ ${e.weight}kg` : e.type === "hold" ? `${e.sets}× ${e.seconds}s` : `${e.minutes} min`}
+                      </div>
+                    </div>
+                    <button onClick={() => delExercise(d.id, e.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.muted, display: "flex" }}><X size={16} /></button>
+                  </div>
+                ))}
+                {adding === d.id
+                  ? <ExerciseForm onAdd={(ex) => { addExercise(d.id, ex); }} onClose={() => setAdding(null)} />
+                  : <button onClick={() => setAdding(d.id)} className="flex items-center justify-center gap-1" style={{ width: "100%", marginTop: 10, background: C.surface2, color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px", cursor: "pointer", ...body, fontSize: 13 }}><Plus size={15} /> Übung hinzufügen</button>}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <button onClick={addDay} className="flex items-center justify-center gap-1" style={{ width: "100%", marginTop: 12, background: "transparent", color: C.muted, border: `1px dashed ${C.line}`, borderRadius: 12, padding: "12px", cursor: "pointer", ...body, fontSize: 13 }}><Plus size={15} /> Einheit hinzufügen</button>
+
+      <button disabled={!canSave} onClick={() => onSave(plan)} className="flex items-center justify-center gap-2" style={{ width: "100%", marginTop: 18, background: canSave ? C.gold : C.surface2, color: canSave ? "#0e0f12" : C.muted, border: "none", borderRadius: 14, padding: "16px", cursor: canSave ? "pointer" : "default", ...display, fontSize: 17 }}>
+        <Check size={18} /> Plan speichern
+      </button>
+      {!canSave && <div style={{ ...body, fontSize: 12, color: C.muted, textAlign: "center", marginTop: 8 }}>Name, mindestens eine Einheit, und jede Einheit braucht mindestens eine Übung.</div>}
+    </div>
+  );
+}
+
+function ExerciseForm({ onAdd, onClose }) {
+  const [type, setType] = useState("strength");
+  const [f, setF] = useState({ name: "", desc: "", hint: "", sets: 3, repsMin: 8, repsMax: 12, weight: 0, rest: 90, minutes: 10, seconds: 30, optional: false });
+  const set = (k, v) => setF({ ...f, [k]: v });
+  const types = [["strength", "Kraft"], ["duration", "Cardio"], ["hold", "Halten"]];
+  function realSubmit(addanother) {
+    if (!f.name.trim()) return;
+    let ex = { type, name: f.name.trim(), desc: f.desc.trim(), hint: f.hint.trim() };
+    if (type === "strength") ex = { ...ex, optional: f.optional, sets: f.sets, repsMin: f.repsMin, repsMax: f.repsMax, weight: f.weight, rest: f.rest };
+    else if (type === "hold") ex = { ...ex, sets: f.sets, seconds: f.seconds, rest: f.rest };
+    else ex = { ...ex, minutes: f.minutes };
+    onAdd(ex);
+    setF({ ...f, name: "", desc: "", hint: "" });
+    if (!addanother) onClose();
+  }
+  const FieldRow = ({ label, children }) => (
+    <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
+      <span style={{ ...body, fontSize: 13, color: C.muted }}>{label}</span>{children}
+    </div>
+  );
+  return (
+    <div style={{ background: C.surface2, border: `1px solid ${C.gold}33`, borderRadius: 12, padding: 14, marginTop: 10 }}>
+      <div className="flex gap-2" style={{ marginBottom: 12 }}>
+        {types.map(([t, l]) => (
+          <button key={t} onClick={() => setType(t)} style={{ flex: 1, ...body, fontSize: 12, fontWeight: 600, padding: "7px 0", borderRadius: 8, cursor: "pointer", border: `1px solid ${type === t ? C.gold : C.line}`, background: type === t ? C.goldSoft : "transparent", color: type === t ? C.gold : C.muted }}>{l}</button>
+        ))}
+      </div>
+      <input value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Übungsname" style={{ ...inputStyle, marginBottom: 10 }} />
+      {type === "strength" && (
+        <>
+          <FieldRow label="Sätze"><Stepper value={f.sets} min={1} onChange={(v) => set("sets", v)} /></FieldRow>
+          <FieldRow label="Wdh. min"><Stepper value={f.repsMin} min={1} onChange={(v) => set("repsMin", v)} /></FieldRow>
+          <FieldRow label="Wdh. max"><Stepper value={f.repsMax} min={1} onChange={(v) => set("repsMax", v)} /></FieldRow>
+          <FieldRow label="Gewicht"><Stepper value={f.weight} step={2.5} onChange={(v) => set("weight", v)} suffix="kg" /></FieldRow>
+          <FieldRow label="Pause"><Stepper value={f.rest} step={15} onChange={(v) => set("rest", v)} suffix="s" /></FieldRow>
+        </>
+      )}
+      {type === "hold" && (
+        <>
+          <FieldRow label="Sätze"><Stepper value={f.sets} min={1} onChange={(v) => set("sets", v)} /></FieldRow>
+          <FieldRow label="Sekunden"><Stepper value={f.seconds} step={5} onChange={(v) => set("seconds", v)} suffix="s" /></FieldRow>
+          <FieldRow label="Pause"><Stepper value={f.rest} step={15} onChange={(v) => set("rest", v)} suffix="s" /></FieldRow>
+        </>
+      )}
+      {type === "duration" && <FieldRow label="Dauer"><Stepper value={f.minutes} step={5} onChange={(v) => set("minutes", v)} suffix="min" /></FieldRow>}
+      <input value={f.hint} onChange={(e) => set("hint", e.target.value)} placeholder="Hinweis (optional)" style={{ ...inputStyle, marginTop: 4, marginBottom: 12, fontSize: 13 }} />
+      <div className="flex gap-2">
+        <button onClick={() => realSubmit(true)} style={{ flex: 1, ...body, fontSize: 13, fontWeight: 600, background: C.gold, color: "#0e0f12", border: "none", borderRadius: 10, padding: "10px", cursor: "pointer" }}>+ Hinzufügen</button>
+        <button onClick={() => realSubmit(false)} style={{ flex: 1, ...body, fontSize: 13, background: "transparent", color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px", cursor: "pointer" }}>Fertig</button>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
+   IMPORT
+   ============================================================ */
+function ImportView({ onImport }) {
+  const [raw, setRaw] = useState("");
+  const [err, setErr] = useState("");
+  const example = `{
+  "name": "Push/Pull/Beine",
+  "days": [
+    { "name": "Push", "exercises": [
+      { "type": "strength", "name": "Bankdrücken",
+        "sets": 4, "repsMin": 6, "repsMax": 10,
+        "weight": 0, "rest": 150, "hint": "Schulterblätter fixieren" }
+    ]}
+  ]
+}`;
+  function go() {
+    const { plan, error } = parsePlan(raw);
+    if (error) { setErr(error); return; }
+    onImport(plan);
+  }
+  return (
+    <div className="rise">
+      <div style={{ ...display, fontSize: 24, marginBottom: 6 }}>Plan importieren</div>
+      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 14 }}>
+        Lass dir von Jarvis im Chat einen Plan im JSON-Format bauen, füg ihn hier ein und importiere ihn mit einem Tap.
+      </div>
+      <textarea value={raw} onChange={(e) => { setRaw(e.target.value); setErr(""); }} placeholder="JSON hier einfügen…"
+        style={{ ...inputStyle, height: 180, ...body, fontSize: 12, resize: "vertical" }} />
+      {err && <div style={{ ...body, fontSize: 13, color: C.clay, marginTop: 8 }}>{err}</div>}
+      <button onClick={go} disabled={!raw.trim()} className="flex items-center justify-center gap-2" style={{ width: "100%", marginTop: 14, background: raw.trim() ? C.gold : C.surface2, color: raw.trim() ? "#0e0f12" : C.muted, border: "none", borderRadius: 14, padding: "15px", cursor: raw.trim() ? "pointer" : "default", ...display, fontSize: 16 }}>
+        <Download size={17} /> Importieren
+      </button>
+      <details style={{ marginTop: 18 }}>
+        <summary style={{ ...body, fontSize: 12, color: C.gold, cursor: "pointer" }}>Format-Beispiel anzeigen</summary>
+        <pre style={{ ...body, fontSize: 11, color: C.muted, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 10, padding: 12, marginTop: 8, overflowX: "auto", whiteSpace: "pre" }}>{example}</pre>
+      </details>
+    </div>
+  );
+}
+
+/* ============================================================
+   HOME (Tag-Auswahl eines Plans)
+   ============================================================ */
+function Home({ plan, logs, resumable, onStart, onEditDay, onDuplicateDay, onDeleteDay }) {
+  const [confirmDel, setConfirmDel] = useState(null);
+  const planLogs = logs.filter((l) => l.planId === plan.id);
+  const last = planLogs[0];
+  const order = plan.days.map((d) => d.id);
+  const suggestedDay = last ? order[(order.indexOf(last.dayId) + 1) % order.length] : order[0];
+  return (
+    <div className="rise">
+      {resumable && (
+        <button onClick={() => onStart(resumable.dayId, resumable)} className="flex items-center justify-between" style={{ width: "100%", background: C.goldSoft, border: `1px solid ${C.gold}55`, borderRadius: 14, padding: "14px 16px", marginBottom: 16, cursor: "pointer", color: C.text }}>
+          <div className="text-left">
+            <div style={{ ...body, fontSize: 11, color: C.gold, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Offene Einheit</div>
+            <div style={{ ...body, fontSize: 14 }}>{resumable.dayName} — {resumable.entries.length} Übungen erfasst</div>
+          </div>
+          <Play size={20} color={C.gold} />
+        </button>
+      )}
+      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 14 }}>
+        {last ? `Zuletzt: ${last.dayName.split("·")[0].trim()} am ${last.dateISO.slice(8, 10)}.${last.dateISO.slice(5, 7)}. — heute dran:` : "Wähle deine Einheit:"}
+      </div>
+      <div className="flex flex-col gap-3">
+        {plan.days.length === 0 && (
+          <div style={{ ...body, fontSize: 14, color: C.muted, background: C.surface, border: `1px dashed ${C.line}`, borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
+            Keine Einheiten mehr in diesem Plan. Über „Bibliothek → Bearbeiten" eine neue Einheit hinzufügen.
+          </div>
+        )}
+        {plan.days.map((d, i) => {
+          const isSug = d.id === suggestedDay && plan.days.length > 1;
+          const strength = d.exercises.filter((e) => e.type === "strength").length;
+          return (
+            <div key={d.id} style={{ background: C.surface, border: `1px solid ${isSug ? C.gold + "66" : C.line}`, borderRadius: 16, position: "relative", overflow: "hidden" }}>
+              {isSug && <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: C.gold, zIndex: 1 }} />}
+              <button onClick={() => onStart(d.id, null)} className="flex items-center justify-between" style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "18px", cursor: "pointer", color: C.text }}>
+                <div>
+                  <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
+                    <span style={{ ...display, fontSize: 22 }}>Einheit {i + 1}</span>
+                    {isSug && <Pill color={C.gold} bg={C.goldSoft}>empfohlen</Pill>}
+                  </div>
+                  {d.label && <div style={{ ...body, fontSize: 13, color: C.muted }}>{d.label}</div>}
+                  <div style={{ ...body, fontSize: 11, color: C.muted, marginTop: 6 }}>{strength} Kraftübungen · {d.exercises.length} gesamt</div>
+                </div>
+                <Play size={20} color={C.gold} />
+              </button>
+              <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
+                <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => onEditDay(d.id)} />
+                <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => onDuplicateDay(d.id)} />
+                <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDel(d.id)} />
+              </div>
+              {confirmDel === d.id && (
+                <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
+                  <span style={{ ...body, fontSize: 13, color: C.text }}>Einheit wirklich löschen?</span>
+                  <div className="flex gap-2">
+                    <button onClick={() => setConfirmDel(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
+                    <button onClick={() => { onDeleteDay(d.id); setConfirmDel(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {planLogs.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Verlauf</div>
+          <div className="flex flex-col gap-2">
+            {planLogs.slice(0, 5).map((s, i) => {
+              const vol = s.entries.reduce((a, e) => a + volumeOf(e), 0);
+              const over = s.entries.filter((e) => e.evaluation === "uebertroffen").length;
+              return (
+                <div key={i} className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 14px" }}>
+                  <div style={{ ...body, fontSize: 13 }}>{s.dayName.split("·")[0].trim()}<span style={{ color: C.muted }}> · {s.dateISO.slice(8, 10)}.{s.dateISO.slice(5, 7)}.</span></div>
+                  <div className="flex items-center gap-3" style={{ ...body, fontSize: 12, color: C.muted }}>
+                    {over > 0 && <span style={{ color: C.mint }}>{over}× ↑</span>}<span>{vol.toLocaleString("de-DE")} kg</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   WORKOUT
+   ============================================================ */
+function Workout({ ex, idx, total, draft, setDraft, editing, setEditing, updateTarget, onFinish, history }) {
+  const progress = Math.round((idx / total) * 100);
+  let lastTime = null;
+  for (const s of history) { const e = s.entries.find((x) => x.exerciseId === ex.id); if (e) { lastTime = e; break; } }
+  return (
+    <div className="rise">
+      <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
+        <span style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>Übung {idx + 1} / {total}</span>
+        {ex.optional && <Pill>optional</Pill>}
+      </div>
+      <div style={{ height: 4, background: C.surface2, borderRadius: 999, marginBottom: 20, overflow: "hidden" }}>
+        <div style={{ width: `${progress}%`, height: "100%", background: C.gold, transition: "width .4s ease" }} />
+      </div>
+      <h1 style={{ ...display, fontSize: 34, lineHeight: 1.02, margin: "0 0 10px" }}>{ex.name}</h1>
+      {ex.desc && <p style={{ ...body, fontSize: 14, color: C.muted, margin: "0 0 6px" }}>{ex.desc}</p>}
+      {ex.hint && (
+        <div className="flex items-start gap-2" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", marginBottom: 18 }}>
+          <Flame size={15} color={C.gold} style={{ marginTop: 1, flexShrink: 0 }} /><span style={{ ...body, fontSize: 13, color: C.text }}>{ex.hint}</span>
+        </div>
+      )}
+
+      {ex.type === "duration" && (
+        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18 }}>
+          <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.minutes} min</span>
+            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
+          </div>
+          {editing && <div className="flex items-center justify-between" style={{ marginBottom: 14 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Soll-Dauer</span><Stepper value={ex.minutes} step={5} onChange={(v) => updateTarget({ minutes: v })} suffix="min" /></div>}
+          <div className="flex items-center justify-between" style={{ marginBottom: 16 }}><span style={{ ...body, fontSize: 14 }}>Tatsächlich</span><Stepper value={draft.minutes} step={5} onChange={(v) => setDraft({ ...draft, minutes: v })} suffix="min" /></div>
+          <FinishBtn label="Erledigt — weiter" onClick={() => { setDraft({ ...draft, done: true }); onFinish(); }} />
+        </div>
+      )}
+
+      {ex.type === "strength" && (
+        <div>
+          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.sets}×{ex.repsMin}–{ex.repsMax} @ {ex.weight} kg</span>
+            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
+          </div>
+          {editing && (
+            <div style={{ background: C.surface2, border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Sätze</span><Stepper value={ex.sets} min={1} onChange={(v) => { updateTarget({ sets: v }); setDraft({ sets: Array.from({ length: v }, (_, i) => draft.sets[i] || { reps: ex.repsMin, weight: ex.weight }) }); }} /></div>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Wdh. min</span><Stepper value={ex.repsMin} min={1} onChange={(v) => updateTarget({ repsMin: v })} /></div>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Wdh. max</span><Stepper value={ex.repsMax} min={1} onChange={(v) => updateTarget({ repsMax: v })} /></div>
+              <div className="flex items-center justify-between"><span style={{ ...body, fontSize: 13, color: C.muted }}>Gewicht</span><Stepper value={ex.weight} step={2.5} onChange={(v) => updateTarget({ weight: v })} suffix="kg" /></div>
+            </div>
+          )}
+          {lastTime && lastTime.type === "strength" && <div style={{ ...body, fontSize: 12, color: C.muted, marginBottom: 10 }}>Letztes Mal: {lastTime.actual.map((s) => `${s.reps}@${s.weight}`).join("  ·  ")}</div>}
+          <div className="flex flex-col gap-2" style={{ marginBottom: 16 }}>
+            {draft.sets.map((s, i) => (
+              <div key={i} className="flex items-center gap-3" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 12px" }}>
+                <div style={{ ...display, fontSize: 15, color: C.muted, width: 24 }}>{i + 1}</div>
+                <div className="flex-1 flex items-center justify-between">
+                  <div style={{ textAlign: "center" }}><div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 2 }}>WDH</div><Stepper value={s.reps} onChange={(v) => { const n = [...draft.sets]; n[i] = { ...n[i], reps: v }; setDraft({ sets: n }); }} /></div>
+                  <div style={{ width: 1, height: 34, background: C.line }} />
+                  <div style={{ textAlign: "center" }}><div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 2 }}>KG</div><Stepper value={s.weight} step={2.5} onChange={(v) => { const n = [...draft.sets]; n[i] = { ...n[i], weight: v }; setDraft({ sets: n }); }} /></div>
+                </div>
+              </div>
+            ))}
+          </div>
+          <FinishBtn label="Sätze bestätigen" onClick={onFinish} />
+        </div>
+      )}
+
+      {ex.type === "hold" && (
+        <div>
+          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
+            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.sets}× {ex.seconds}s</span>
+            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
+          </div>
+          {editing && (
+            <div style={{ background: C.surface2, border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
+              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Sätze</span><Stepper value={ex.sets} min={1} onChange={(v) => { updateTarget({ sets: v }); setDraft({ sets: Array.from({ length: v }, (_, i) => draft.sets[i] || { seconds: ex.seconds }) }); }} /></div>
+              <div className="flex items-center justify-between"><span style={{ ...body, fontSize: 13, color: C.muted }}>Sekunden</span><Stepper value={ex.seconds} step={5} onChange={(v) => updateTarget({ seconds: v })} suffix="s" /></div>
+            </div>
+          )}
+          <div className="flex flex-col gap-2" style={{ marginBottom: 16 }}>
+            {draft.sets.map((s, i) => (
+              <div key={i} className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px" }}>
+                <div style={{ ...display, fontSize: 15, color: C.muted }}>Satz {i + 1}</div>
+                <Stepper value={s.seconds} step={5} onChange={(v) => { const n = [...draft.sets]; n[i] = { seconds: v }; setDraft({ sets: n }); }} suffix="s" />
+              </div>
+            ))}
+          </div>
+          <FinishBtn label="Bestätigen" onClick={onFinish} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   RESULT
+   ============================================================ */
+function Result({ entry, idx, total, onContinue }) {
+  const meta = EVAL_META[entry.evaluation]; const Icon = meta.icon; const isLast = idx + 1 >= total;
+  return (
+    <div className="rise" style={{ textAlign: "center", paddingTop: 8 }}>
+      <div className="pop" style={{ width: 88, height: 88, borderRadius: "50%", background: meta.soft, border: `2px solid ${meta.color}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "10px auto 18px" }}><Icon size={40} color={meta.color} /></div>
+      <div style={{ ...display, fontSize: 30, color: meta.color, marginBottom: 4 }}>{meta.label}</div>
+      <div style={{ ...body, fontSize: 15, color: C.text, marginBottom: 22 }}>{entry.name}</div>
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16, textAlign: "left", marginBottom: 14 }}>
+        {entry.type === "strength" && (<><Row k="Soll" v={`${entry.target.sets}×${entry.target.repsMin}–${entry.target.repsMax} @ ${entry.target.weight} kg`} /><Row k="Ist" v={entry.actual.map((s) => `${s.reps}@${s.weight}`).join("  ·  ")} accent /><Row k="Volumen" v={`${volumeOf(entry).toLocaleString("de-DE")} kg`} /></>)}
+        {entry.type === "hold" && (<><Row k="Soll" v={`${entry.target.sets}× ${entry.target.seconds}s`} /><Row k="Ist" v={entry.actual.map((s) => `${s.seconds}s`).join("  ·  ")} accent /></>)}
+        {entry.type === "duration" && (<><Row k="Soll" v={`${entry.target.minutes} min`} /><Row k="Ist" v={`${entry.actual.minutes} min`} accent /></>)}
+      </div>
+      {entry.evaluation === "uebertroffen" && entry.type === "strength" && <div style={{ ...body, fontSize: 13, color: C.mint, marginBottom: 18 }}>↑ Oberes Wdh.-Ziel erreicht — nächstes Mal Gewicht erhöhen (doppelte Progression).</div>}
+      <FinishBtn label={isLast ? "Einheit abschließen" : "Weiter zur Pause"} onClick={onContinue} />
+    </div>
+  );
+}
+
+/* ============================================================
+   REST
+   ============================================================ */
+function Rest({ seconds, nextEx, onDone }) {
+  const [left, setLeft] = useState(seconds); const ref = useRef();
+  useEffect(() => { ref.current = setInterval(() => setLeft((l) => (l > 0 ? l - 1 : 0)), 1000); return () => clearInterval(ref.current); }, []);
+  const frac = left / seconds, R = 70, CIRC = 2 * Math.PI * R;
+  const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");
+  return (
+    <div className="rise" style={{ textAlign: "center", paddingTop: 6 }}>
+      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 18 }}>Pause</div>
+      <div style={{ position: "relative", width: 180, height: 180, margin: "0 auto 8px" }}>
+        <svg width="180" height="180" style={{ transform: "rotate(-90deg)" }}>
+          <circle cx="90" cy="90" r={R} fill="none" stroke={C.surface2} strokeWidth="10" />
+          <circle cx="90" cy="90" r={R} fill="none" stroke={left === 0 ? C.mint : C.gold} strokeWidth="10" strokeLinecap="round" strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - frac)} style={{ transition: "stroke-dashoffset 1s linear, stroke .3s" }} />
+        </svg>
+        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ ...display, fontSize: 46, lineHeight: 1 }}>{mm}:{ss}</div><div style={{ ...body, fontSize: 11, color: C.muted }}>von {seconds}s</div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center gap-2" style={{ marginBottom: 22 }}>
+        <button onClick={() => setLeft((l) => l + 30)} style={{ ...body, fontSize: 12, color: C.text, background: C.surface2, border: `1px solid ${C.line}`, padding: "7px 14px", borderRadius: 999, cursor: "pointer" }}>+30s</button>
+      </div>
+      {nextEx && <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Als Nächstes</div><div style={{ ...body, fontSize: 15, color: C.text }}>{nextEx.name}</div></div>}
+      <FinishBtn label="Nächste Übung" onClick={onDone} />
+    </div>
+  );
+}
+
+/* ============================================================
+   SUMMARY
+   ============================================================ */
+function Summary({ plan, dayId, entries, logs, onReset, onLibrary }) {
+  const [copied, setCopied] = useState(false);
+  const day = plan.days.find((d) => d.id === dayId);
+  const order = plan.days.map((d) => d.id);
+  const dayIdx = order.indexOf(dayId);
+  const dayName = unitTitle(dayIdx, day.label);
+  const nextIdx = plan.days.length > 1 ? (dayIdx + 1) % order.length : dayIdx;
+  const nextDay = plan.days[nextIdx];
+  const nextName = unitTitle(nextIdx, nextDay.label);
+  const counts = { uebertroffen: 0, erreicht: 0, verfehlt: 0 };
+  entries.forEach((e) => { if (counts[e.evaluation] !== undefined) counts[e.evaluation]++; });
+  const vol = entries.reduce((a, e) => a + volumeOf(e), 0);
+  const prev = logs.slice(1).find((s) => s.planId === plan.id && s.dayId === dayId);
+  const prevVol = prev ? prev.entries.reduce((a, e) => a + volumeOf(e), 0) : null;
+  const volDelta = prevVol != null ? vol - prevVol : null;
+  const tips = entries.filter((e) => e.evaluation === "uebertroffen" && e.type === "strength");
+  const text = buildExport({ planName: plan.name, dayName, dateISO: new Date().toISOString(), entries });
+  function copy() { try { navigator.clipboard.writeText(text); } catch {} setCopied(true); setTimeout(() => setCopied(false), 2200); }
+  return (
+    <div className="rise">
+      <div style={{ textAlign: "center", marginBottom: 24 }}>
+        <div className="pop" style={{ width: 76, height: 76, borderRadius: "50%", background: C.goldSoft, border: `2px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "4px auto 14px" }}><Trophy size={36} color={C.gold} /></div>
+        <div style={{ ...display, fontSize: 30, marginBottom: 4 }}>Geschafft.</div>
+        <div style={{ ...body, fontSize: 14, color: C.muted }}>{dayName} abgeschlossen</div>
+      </div>
+      <div className="flex gap-2" style={{ marginBottom: 14 }}>
+        {[["uebertroffen", counts.uebertroffen], ["erreicht", counts.erreicht], ["verfehlt", counts.verfehlt]].map(([k, n]) => {
+          const m = EVAL_META[k];
+          return <div key={k} style={{ flex: 1, background: C.surface, border: `1px solid ${m.color}33`, borderRadius: 14, padding: "14px 6px", textAlign: "center" }}><div style={{ ...display, fontSize: 30, color: m.color, lineHeight: 1 }}>{n}</div><div style={{ ...body, fontSize: 10, color: C.muted, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.label}</div></div>;
+        })}
+      </div>
+      <div className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
+        <div><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Gesamtvolumen</div><div style={{ ...display, fontSize: 26 }}>{vol.toLocaleString("de-DE")} <span style={{ fontSize: 15, color: C.muted }}>kg</span></div></div>
+        {volDelta != null && <div style={{ textAlign: "right" }}><div style={{ ...body, fontSize: 11, color: C.muted }}>vs. letztes Mal</div><div style={{ ...display, fontSize: 20, color: volDelta >= 0 ? C.mint : C.clay }}>{volDelta >= 0 ? "+" : ""}{volDelta.toLocaleString("de-DE")} kg</div></div>}
+      </div>
+      {tips.length > 0 && (
+        <div style={{ background: C.mintSoft, border: `1px solid ${C.mint}44`, borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
+          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}><Activity size={15} color={C.mint} /><span style={{ ...body, fontSize: 12, color: C.mint, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>Nächstes Mal hochgehen</span></div>
+          {tips.map((e) => <div key={e.exerciseId} style={{ ...body, fontSize: 13, color: C.text, padding: "2px 0" }}>• {e.name}</div>)}
+        </div>
+      )}
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 16px", marginBottom: 18 }}><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Nächste Einheit</div><div style={{ ...body, fontSize: 15 }}>{nextName}</div></div>
+      <div style={{ background: C.surface2, border: `1px dashed ${C.gold}55`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
+        <div style={{ ...body, fontSize: 13, color: C.text, marginBottom: 10 }}>Daten an <span style={{ color: C.gold, fontWeight: 700 }}>Jarvis</span> — kopieren und in den Chat einfügen, dann landet's in Notion.</div>
+        <button onClick={copy} className="flex items-center justify-center gap-2" style={{ width: "100%", background: copied ? C.mint : C.gold, color: "#0e0f12", border: "none", borderRadius: 12, padding: "13px", cursor: "pointer", ...display, fontSize: 15, marginBottom: 10 }}>{copied ? <><Check size={17} /> Kopiert</> : <><Copy size={17} /> Log kopieren</>}</button>
+        <textarea readOnly value={text} style={{ width: "100%", height: 120, background: C.bg, color: C.muted, border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, ...body, fontSize: 11, resize: "vertical" }} />
+      </div>
+      <div className="flex gap-3">
+        <button onClick={onReset} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.muted, border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer", ...body, fontSize: 14 }}><RotateCcw size={16} /> Plan-Start</button>
+        <button onClick={onLibrary} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.muted, border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer", ...body, fontSize: 14 }}><Library size={16} /> Bibliothek</button>
+      </div>
+    </div>
+  );
+}
+
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(React.createElement(App));
+</script>
+</body>
+</html>
