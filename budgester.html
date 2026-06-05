@@ -192,6 +192,16 @@
   .f label{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3)}
   .f input,.f select{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:9px 11px;border-radius:8px;font-family:var(--sans);font-size:13.5px}
   .f input:focus,.f select:focus{outline:0;border-color:var(--amber-dim)}
+  .f select:disabled{opacity:.45;cursor:not-allowed}
+  .mgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  .mcell{display:flex;flex-direction:column;gap:4px}
+  .mcell span{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+  .mcell input{background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:7px 9px;border-radius:7px;font-family:var(--sans);font-size:13px;width:100%;box-sizing:border-box}
+  .mcell input:focus{outline:0;border-color:var(--amber-dim)}
+  .minput{display:flex;gap:5px;align-items:stretch}
+  .minput input{flex:1;min-width:0}
+  .mclear{flex-shrink:0;width:28px;border:1px solid var(--line);background:transparent;color:var(--ink-3);border-radius:7px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .mclear:hover{color:var(--ink);border-color:var(--line-2);background:var(--panel-2)}
   .f .euro{position:relative}
   .f .euro input{padding-right:26px;font-family:var(--mono)}
   .f .euro::after{content:'€';position:absolute;right:11px;top:50%;transform:translateY(-50%);color:var(--ink-3);font-family:var(--mono)}
@@ -199,6 +209,7 @@
   .toggle button{flex:1;border:0;background:transparent;color:var(--ink-2);padding:8px;border-radius:6px;cursor:pointer;font-family:var(--sans);font-size:13px;font-weight:500}
   .toggle button.on.in{background:var(--pos);color:#06140d}
   .toggle button.on.out{background:var(--neg);color:#160606}
+  #condModus button.on{background:var(--line-2);color:var(--ink);font-weight:600}
   .actoggle{display:flex;align-items:center;gap:9px}
   .switch{position:relative;width:42px;height:24px;border-radius:13px;background:var(--line-2);cursor:pointer;transition:background .15s;flex-shrink:0}
   .switch.on{background:var(--pos)}
@@ -210,6 +221,7 @@
 
   .modal-f{display:flex;align-items:center;gap:10px;padding:16px 22px;border-top:1px solid var(--line)}
   .modal-f .spacer{flex:1}
+  .modal-f.split .btn{flex:1}
 
   ::-webkit-scrollbar{width:11px;height:11px}
   ::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:6px;border:3px solid var(--bg)}
@@ -219,6 +231,31 @@
   .rad label{display:flex;align-items:center;gap:9px;font-size:13.5px;color:var(--ink);cursor:pointer;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel)}
   .rad label:has(input:checked){border-color:var(--amber-dim)}
   .rad input{accent-color:var(--amber)}
+
+  /* Kategorien-Editor */
+  .kat-block{margin-top:18px}
+  .kat-block:first-of-type{margin-top:6px}
+  .kat-block h4{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-3);font-family:var(--mono);margin:0 0 9px;font-weight:600}
+  .kat-list{display:flex;flex-direction:column;gap:6px}
+  .kat-haupt{border:1px solid var(--line);border-radius:9px;padding:9px;margin-bottom:9px;background:var(--panel)}
+  .kat-row{display:flex;align-items:center;gap:7px;background:var(--panel-2);border:1px solid var(--line);border-radius:7px;padding:5px 7px}
+  .kat-haupt>.kat-row.haupt{background:transparent;border:0;padding:2px 0 8px;border-bottom:1px solid var(--line);border-radius:0;margin-bottom:8px}
+  .kat-neben-list{display:flex;flex-direction:column;gap:6px;margin-left:18px}
+  .kat-grip{cursor:grab;color:var(--ink-3);font-size:14px;line-height:1;user-select:none;flex-shrink:0;padding:0 2px;touch-action:none}
+  .kat-grip:active{cursor:grabbing}
+  .kat-name{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);color:var(--ink);padding:6px 9px;border-radius:6px;font-family:var(--sans);font-size:13px;box-sizing:border-box}
+  .kat-row.haupt .kat-name{font-weight:600;background:var(--panel-2)}
+  .kat-name:focus{outline:0;border-color:var(--amber-dim)}
+  .kat-move{flex-shrink:0;max-width:150px;background:var(--panel);border:1px solid var(--line);color:var(--ink-2);padding:6px 7px;border-radius:6px;font-family:var(--sans);font-size:12px;cursor:pointer}
+  .kat-move:focus{outline:0;border-color:var(--amber-dim)}
+  .kat-del{flex-shrink:0;width:26px;height:26px;border:1px solid var(--line);background:transparent;color:var(--ink-3);border-radius:6px;cursor:pointer;font-size:15px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .kat-del:hover{color:var(--neg);border-color:var(--neg)}
+  .kat-add{margin-top:8px;background:transparent;border:1px dashed var(--line-2);color:var(--ink-2);padding:7px 11px;border-radius:7px;cursor:pointer;font-family:var(--sans);font-size:12.5px}
+  .kat-add:hover{color:var(--ink);border-color:var(--amber-dim)}
+  .kat-add.neben{margin-top:8px;margin-left:18px;font-size:12px;padding:5px 10px}
+  .kat-row.dragging{opacity:.4}
+  .kat-row.drop-before{box-shadow:0 -2px 0 var(--accent)}
+  .kat-row.drop-after{box-shadow:0 2px 0 var(--accent)}
 </style>
 </head>
 <body>
@@ -285,18 +322,16 @@
         </div>
         <div class="f">
           <label>Hauptkategorie</label>
-          <input type="text" id="fHaupt" list="catList" placeholder="Kategorie wählen / neu">
-          <datalist id="catList"></datalist>
+          <select id="fHaupt"></select>
         </div>
-        <div class="f">
+        <div class="f" id="fNebenWrap">
           <label>Nebenkategorie <span style="text-transform:none;color:var(--ink-3)">(optional)</span></label>
-          <input type="text" id="fNeben" list="subList" placeholder="—">
-          <datalist id="subList"></datalist>
+          <select id="fNeben"></select>
         </div>
         <div class="f full">
           <label>Verzichtbarkeitsgrad</label>
           <select id="fVz">
-            <option value="1">1 · unverzichtbar (Fixsockel)</option>
+            <option value="1">1 · unverzichtbar</option>
             <option value="2">2 · wichtig</option>
             <option value="3" selected>3 · mittel</option>
             <option value="4">4 · optional</option>
@@ -318,11 +353,18 @@
           <span class="al" id="condActiveLabel">In diesem Jahr aktiv</span>
         </div>
         <div class="grid" id="condFields">
-          <div class="f">
-            <label>Betrag</label>
-            <div class="euro"><input type="number" step="0.01" id="fBetrag" placeholder="0,00"></div>
+          <div class="f full">
+            <label>Beträge</label>
+            <div class="toggle" id="condModus">
+              <button data-modus="auto" class="on">Automatisch</button>
+              <button data-modus="manuell">Manuell</button>
+            </div>
           </div>
-          <div class="f">
+          <div class="f auto-field">
+            <label>Betrag</label>
+            <div class="euro"><input type="text" inputmode="decimal" id="fBetrag" placeholder="0,00"></div>
+          </div>
+          <div class="f auto-field">
             <label>Rhythmus</label>
             <select id="fRhythmus">
               <option value="monatlich">monatlich</option>
@@ -333,13 +375,13 @@
               <option value="einmalig">einmalig</option>
             </select>
           </div>
-          <div class="f" id="startWrap">
+          <div class="f auto-field full" id="startWrap">
             <label>Erster Monat</label>
             <select id="fStart"></select>
           </div>
-          <div class="f">
-            <label>Abbuchungstag <span style="text-transform:none;color:var(--ink-3)">(optional)</span></label>
-            <input type="text" id="fTag" placeholder="z. B. 15.">
+          <div class="f full hidden" id="manuellWrap">
+            <label>Betrag je Monat</label>
+            <div class="mgrid" id="mGrid"></div>
           </div>
         </div>
       </div>
@@ -399,8 +441,7 @@
       <button class="x" id="dlgX">×</button>
     </div>
     <div class="zone"><p id="dlgMsg" style="font-size:13.5px;color:var(--ink-2);line-height:1.6"></p></div>
-    <div class="modal-f">
-      <div class="spacer"></div>
+    <div class="modal-f split">
       <button class="btn ghost" id="dlgCancel">Abbrechen</button>
       <button class="btn prim" id="dlgOk">OK</button>
     </div>
@@ -411,7 +452,7 @@
 
 <script>
 /* =====================================================================
-   BUDGESTER · v0.3.0
+   BUDGESTER · v0.4.1
    Datenmodell:
      state.posten[]  = KATALOG (Identität, zentral, jahresübergreifend)
      state.buecher[] = pro Jahr ein Buch; jedes hält je Posten die
@@ -427,17 +468,50 @@ const RHYTHMUS={
   jaehrlich:{schritt:12,label:'jährlich'}, einmalig:{schritt:0,label:'einmalig'}
 };
 const VZ_LABEL={1:'unverzichtbar',2:'wichtig',3:'mittel',4:'optional',5:'verzichtbar'};
-const KAT_REIHENFOLGE=['Bedarf','Wohnen & Lebenserhaltung','Bildung','Mitgliedschaften','Abonnements','Sonstige Verträge','Kontoführungsgebühren','Schulden','Vorsorge & Versicherungen'];
+const VZ_COLOR={1:'var(--neg)',2:'#e58a4c',3:'#e3b341',4:'#8fbf5e',5:'var(--pos)'};
+/* ---- Kategorie-Taxonomie ---- */
+const KAT_EIN=['Gehalt Hauptberuf','Gehalt Nebenberuf','Übungsleiterpauschale','Unterhalt','Zusatzunterhalt','Sonderunterhalt','Kreditauszahlung','Zuschüsse','Sonstige Einnahmen'];
+const KAT_AUS={
+  'Beruf & Karriere':['Studiengebühren','Kurse/Weiterbildung','Literatur'],
+  'Haushalt & Lebensmittel':['Lebensmittel','Drogerie/Hygiene','Haushaltsbedarf','Apotheke/Arznei'],
+  'Mobilität':['ÖPNV','Kraftstoff/Ladestrom','Leasing/Finanzierung','Kfz-Versicherung','Kfz-Steuer','Wartung/Verschleiß','Parken/Maut','Sharing/Ridehailing'],
+  'Wohnen & Umfeld':['Miete/Hypothek','Nebenkosten'],
+  'Körper & Gesundheit':['Brille/Kontaktlinsen','Sport/Fitness','Therapie/Coaching'],
+  'Kommunikation & Digitales':['Internet/Festnetz','Mail/Webhosting','Smartphone/Mobilfunk','Software'],
+  'Freizeit & Soziales':['Vereins-/Mitgliedsbeiträge','Streamingdienste'],
+  'Finanzen & Verpflichtungen':['Kontoführungs-/Depotgebühren','Kreditraten','Sparen/Investieren'],
+  'Versicherungen & Vorsorge':['Berufsunfähigkeit','Haftpflicht','Hausrat','Private Altersvorsorge'],
+};
+// KAT_EIN / KAT_AUS dienen nur noch als Startwert (Default). Editierbare Kategorien leben in state.kategorien.
+function defaultKategorien(){
+  return {
+    einnahmen:[...KAT_EIN],
+    ausgaben:Object.keys(KAT_AUS).map(h=>({haupt:h,neben:[...KAT_AUS[h]]}))
+  };
+}
+function normalizeKat(k){
+  if(!k||!Array.isArray(k.einnahmen)||!Array.isArray(k.ausgaben)) return defaultKategorien();
+  return {
+    einnahmen:k.einnahmen.filter(x=>typeof x==='string'&&x.trim()),
+    ausgaben:k.ausgaben.filter(x=>x&&typeof x.haupt==='string'&&x.haupt.trim())
+      .map(x=>({haupt:x.haupt,neben:Array.isArray(x.neben)?x.neben.filter(n=>typeof n==='string'&&n.trim()):[]}))
+  };
+}
+// Zugriffs-Helper (lesen immer den aktuellen State)
+const katEin=()=>state.kategorien.einnahmen;
+const katAusHaupts=()=>state.kategorien.ausgaben.map(x=>x.haupt);
+const katAusEntry=h=>state.kategorien.ausgaben.find(x=>x.haupt===h);
+const katAusNeben=h=>{const e=katAusEntry(h);return e?e.neben:[];};
 const HEUTE_JAHR=2026;
-const APP_VERSION='0.3.0';
+const APP_VERSION='0.4.1';
 
 /* ---- Persistenz (localStorage + Schema-Migration) ---- */
 const STORAGE_KEY='budgester:data';
-const SCHEMA_VERSION=1;
+const SCHEMA_VERSION=2;
 function migrate(d){
   let v=d.schemaVersion||0;
-  // Künftige Schema-Anpassungen hier schrittweise ergänzen:
-  // if(v<2){ /* alte Struktur -> neue Struktur */ v=2; }
+  // v1 -> v2: editierbare Kategorien als State eingeführt; aus Default befüllen falls fehlend
+  if(v<2){ if(!d.kategorien) d.kategorien=defaultKategorien(); v=2; }
   d.schemaVersion=SCHEMA_VERSION;
   return d;
 }
@@ -447,7 +521,7 @@ function loadState(){
     if(!raw) return null;
     const d=migrate(JSON.parse(raw));
     if(!Array.isArray(d.posten)||!Array.isArray(d.buecher)) return null;
-    return {posten:d.posten,buecher:d.buecher,theme:d.theme||'system'};
+    return {posten:d.posten,buecher:d.buecher,theme:d.theme||'system',kategorien:normalizeKat(d.kategorien)};
   }catch(e){ return null; }
 }
 let _saveTimer=null;
@@ -461,24 +535,30 @@ function saveState(){
 
 const eur=n=>n.toLocaleString('de-DE',{style:'currency',currency:'EUR'});
 const eurC=n=>n===0?'–':n.toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});
+function parseBetrag(s){
+  if(typeof s!=='string') return Number(s)||0;
+  s=s.trim(); if(!s) return 0;
+  if(s.includes(',')){ s=s.replace(/\./g,'').replace(',','.'); }
+  else if(s.includes('.')){ const p=s.split('.'); if(!(p.length===2 && p[1].length<=2)) s=s.replace(/\./g,''); }
+  return parseFloat(s)||0;
+}
+function fmtBetrag(n){return (Number(n)||0).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function formatField(el){const v=parseBetrag(el.value); el.value=v===0?'':fmtBetrag(v);}
 const pct=(n,d)=>d===0?'':(n/d*100).toLocaleString('de-DE',{minimumFractionDigits:1,maximumFractionDigits:1})+' %';
 const uid=p=>(p||'id')+Math.random().toString(36).slice(2,9);
 
-/* ---- Seed: zwei Beispielposten + ein Buch 2026 ---- */
+/* ---- Seed: leeres Haushaltsbuch 2026 ---- */
 function seed(){
-  const pEin={id:uid('p'),bezeichnung:'Beispiel-Einnahme',typ:'einnahme',hauptkategorie:'Erwerbseinkommen',nebenkategorie:'',verzichtbarkeit:1};
-  const pAus={id:uid('p'),bezeichnung:'Beispiel-Ausgabe',typ:'ausgabe',hauptkategorie:'Wohnen & Lebenserhaltung',nebenkategorie:'',verzichtbarkeit:1};
-  const K=(betrag,rhythmus,tag)=>({aktiv:true,betrag,rhythmus,startMonat:0,abbuchungstag:tag||'',overrides:{}});
   return {
-    posten:[pEin,pAus],
-    buecher:[
-      {id:uid('b'),jahr:2026,name:'Haushaltsbuch',konditionen:{[pEin.id]:K(2000,'monatlich','15.'),[pAus.id]:K(800,'monatlich','01.')}}
-    ]
+    posten:[],
+    buecher:[{id:uid('b'),jahr:2026,name:'Haushaltsbuch',konditionen:{}}],
+    kategorien:defaultKategorien()
   };
 }
 
 let state=loadState();
 if(!state){ state=seed(); state.theme='system'; }
+if(!state.kategorien) state.kategorien=defaultKategorien();
 let ui={view:'bibliothek',activeBuchId:null,sortKey:'bezeichnung',sortDir:1,filter:'',filterTyp:'alle'};
 
 /* ---- Helpers ---- */
@@ -499,7 +579,7 @@ function applyTheme(){
 /* ---- Berechnung (konditionen-basiert) ---- */
 function monatsbetrag(k,m){
   if(!k||!k.aktiv) return 0;
-  if(k.overrides && k.overrides[m]!==undefined) return k.overrides[m];
+  if(k.modus==='manuell') return Number((k.manuell||[])[m])||0;
   const start=k.startMonat||0;
   if(m<start) return 0;
   const r=RHYTHMUS[k.rhythmus]||RHYTHMUS.monatlich;
@@ -528,7 +608,7 @@ function render(){
   // Header-Status
   document.getElementById('navDb').classList.toggle('on',ui.view==='datenbank');
   document.getElementById('navLib').classList.toggle('on',ui.view==='bibliothek');
-  document.getElementById('navSet').classList.toggle('on',ui.view==='einstellungen');
+  document.getElementById('navSet').classList.toggle('on',ui.view==='einstellungen'||ui.view==='kategorien');
   const inBuch=ui.view==='buch';
   const navBook=document.getElementById('navBook');
   navBook.classList.toggle('hidden',!inBuch);
@@ -536,6 +616,7 @@ function render(){
   let sub='Bibliothek · '+state.buecher.length+' '+(state.buecher.length===1?'Haushaltsbuch':'Haushaltsbücher');
   if(ui.view==='datenbank') sub='Datenbank';
   else if(ui.view==='einstellungen') sub='Einstellungen · Version '+APP_VERSION;
+  else if(ui.view==='kategorien') sub='Einstellungen · Kategorien';
   else if(ui.view==='buch'){const b=buchById(ui.activeBuchId); sub=(b?b.name+' '+b.jahr:'Haushaltsbuch');}
   document.getElementById('brandSub').textContent=sub;
 
@@ -543,6 +624,7 @@ function render(){
   else if(ui.view==='datenbank') renderDatenbank();
   else if(ui.view==='buch') renderBuch();
   else if(ui.view==='einstellungen') renderEinstellungen();
+  else if(ui.view==='kategorien') renderKategorienSeite();
   saveState();
 }
 
@@ -599,7 +681,7 @@ function renderDatenbank(){
       <td><span class="dot ${p.typ==='einnahme'?'in':'out'}"></span>${p.bezeichnung}</td>
       <td><span class="tag">${p.hauptkategorie}</span></td>
       <td style="color:var(--ink-3)">${p.nebenkategorie||'—'}</td>
-      <td class="vz"><b><i style="width:${p.verzichtbarkeit*20}%;background:var(--ink-2)"></i></b>${VZ_LABEL[p.verzichtbarkeit]}</td>
+      <td class="vz"><b><i style="width:${p.verzichtbarkeit*20}%;background:${VZ_COLOR[p.verzichtbarkeit]}"></i></b>${VZ_LABEL[p.verzichtbarkeit]}</td>
       <td>${ys.length?ys.map(y=>`<span class="tag amber" style="margin-right:4px">${y}</span>`).join(''):'<span style="color:var(--ink-3)">—</span>'}</td>
       <td class="right" style="width:1%"><button class="iconbtn" data-burger="p:${p.id}" title="Aktionen">${ICON_BURGER}</button></td>
     </tr>`;}).join('');
@@ -616,8 +698,8 @@ function renderDatenbank(){
       </div>
       <table class="db-table">
         <thead><tr>
-          ${h('bezeichnung','Bezeichnung')}${h('hauptkategorie','Hauptkategorie')}${h('nebenkategorie','Neben')}
-          ${h('verzichtbarkeit','Verzichtbarkeit')}<th>Aktiv in</th><th></th>
+          ${h('bezeichnung','Bezeichnung')}${h('hauptkategorie','Hauptkategorie')}${h('nebenkategorie','Nebenkategorie')}
+          ${h('verzichtbarkeit','Verzichtbarkeitsgrad')}<th>Aktiv in</th><th></th>
         </tr></thead>
         <tbody>${body||`<tr><td colspan="6"><div class="empty">Noch keine Posten. Lege oben rechts deinen ersten an.</div></td></tr>`}</tbody>
       </table>
@@ -653,38 +735,193 @@ function renderBuch(){
     const cells=Array.from({length:12},(_,m)=>{const v=monatsbetrag(x.k,m);return `<td class="v ${v===0?'z':''}">${eurC(v)}</td>`;}).join('');
     const js=jahressumme(x.k);
     return `<tr class="item" data-id="${x.p.id}">
-      <td class="lbl">${x.p.bezeichnung}</td><td class="day">${x.k.abbuchungstag||''}</td>
+      <td class="lbl">${x.p.bezeichnung}</td>
       ${cells}<td class="v tot">${eurC(js)}</td><td class="pct tot right">${pct(js,bezug)}</td></tr>`;
   };
-  const sumRow=(label,arr,jahr)=>`<tr class="sum"><td class="lbl">${label}</td><td></td>
+  const sumRow=(label,arr,jahr)=>`<tr class="sum"><td class="lbl">${label}</td>
       ${arr.map(v=>`<td class="v">${eurC(v)}</td>`).join('')}<td class="v tot">${eurC(jahr)}</td><td class="tot"></td></tr>`;
 
-  let html=`<tr class="sect"><td class="lbl">Einnahmen</td><td></td>${'<td></td>'.repeat(12)}<td class="tot"></td><td class="tot"></td></tr>`;
+  let html=`<tr class="sect"><td class="lbl">Einnahmen</td>${'<td></td>'.repeat(12)}<td class="tot"></td><td class="tot"></td></tr>`;
   t.ein.forEach(x=>html+=itemRow(x,t.jEin));
   html+=sumRow('Summe Einnahmen',t.mEin,t.jEin);
-  html+=`<tr class="sect"><td class="lbl">Ausgaben</td><td></td>${'<td></td>'.repeat(12)}<td class="tot"></td><td class="tot"></td></tr>`;
-  const kats=[...new Set(t.aus.map(x=>x.p.hauptkategorie))].sort((a,b)=>{const ia=KAT_REIHENFOLGE.indexOf(a),ib=KAT_REIHENFOLGE.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
+  html+=`<tr class="sect"><td class="lbl">Ausgaben</td>${'<td></td>'.repeat(12)}<td class="tot"></td><td class="tot"></td></tr>`;
+  const kats=[...new Set(t.aus.map(x=>x.p.hauptkategorie))].sort((a,b)=>{const R=katAusHaupts();const ia=R.indexOf(a),ib=R.indexOf(b);return (ia<0?99:ia)-(ib<0?99:ib);});
   kats.forEach(kat=>{
     const items=t.aus.filter(x=>x.p.hauptkategorie===kat);
     const mKat=Array.from({length:12},(_,m)=>items.reduce((s,x)=>s+monatsbetrag(x.k,m),0));
     const jKat=mKat.reduce((a,b)=>a+b,0);
-    html+=`<tr class="cat"><td class="lbl">${kat}</td><td></td>${mKat.map(v=>`<td class="v ${v===0?'z':''}">${eurC(v)}</td>`).join('')}<td class="v tot">${eurC(jKat)}</td><td class="pct tot right">${pct(jKat,t.jAus)}</td></tr>`;
+    html+=`<tr class="cat"><td class="lbl">${kat}</td>${mKat.map(v=>`<td class="v ${v===0?'z':''}">${eurC(v)}</td>`).join('')}<td class="v tot">${eurC(jKat)}</td><td class="pct tot right">${pct(jKat,t.jAus)}</td></tr>`;
     items.forEach(x=>html+=itemRow(x,t.jAus));
   });
   html+=sumRow('Summe Ausgaben',t.mAus,t.jAus);
-  html+=`<tr class="saldo"><td class="lbl">Saldo (Über-/Defizit)</td><td></td>${t.mSaldo.map(v=>`<td class="v ${v>=0?'pos':'neg'}">${eurC(v)}</td>`).join('')}<td class="v tot ${t.jSaldo>=0?'pos':'neg'}">${eurC(t.jSaldo)}</td><td class="tot"></td></tr>`;
+  html+=`<tr class="saldo"><td class="lbl">Saldo (Über-/Defizit)</td>${t.mSaldo.map(v=>`<td class="v ${v>=0?'pos':'neg'}">${eurC(v)}</td>`).join('')}<td class="v tot ${t.jSaldo>=0?'pos':'neg'}">${eurC(t.jSaldo)}</td><td class="tot"></td></tr>`;
 
   const empty=(t.ein.length+t.aus.length)===0;
   document.getElementById('view').innerHTML=`
     ${kpis}
     ${empty?`<div class="panel"><div class="empty">In diesem Buch ist noch kein Posten aktiv.<br>Aktiviere Posten in der <b>Datenbank</b> für ${buch.jahr} — oder dupliziere ein bestehendes Buch.</div></div>`:
     `<div class="panel"><div class="scroll"><table class="ledger">
-      <thead><tr><th class="lbl">Posten</th><th class="day" style="text-align:left">Tag</th>${monthHead}<th class="tot">Jahr</th><th class="tot">Anteil</th></tr></thead>
+      <thead><tr><th class="lbl">Posten</th>${monthHead}<th class="tot">Jahr</th><th class="tot">Anteil</th></tr></thead>
       <tbody>${html}</tbody></table></div></div>`}`;
   document.querySelectorAll('.ledger tr.item').forEach(tr=>tr.onclick=()=>openPosten(tr.dataset.id,ui.activeBuchId));
 }
 
 /* ---- Einstellungen ---- */
+/* =====================================================================
+   KATEGORIEN-EDITOR  (state.kategorien, persistent; Kaskade auf Posten)
+   ===================================================================== */
+const katEsc=s=>String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;');
+const countPosten=pred=>state.posten.filter(pred).length;
+function blockMsg(n){return (n===1?'1 Posten nutzt diese Kategorie noch.':n+' Posten nutzen diese Kategorie noch.')+' Ordne sie zuerst um, dann lässt sich die Kategorie löschen.';}
+function uniqueName(base,list){const low=list.map(x=>x.toLowerCase());if(!low.includes(base.toLowerCase()))return base;let i=2;while(low.includes((base+' '+i).toLowerCase()))i++;return base+' '+i;}
+
+function katRowHTML(kind,name,o){
+  let attrs,move='';
+  if(kind==='ein')attrs=`data-kind="ein" data-i="${o.i}"`;
+  else if(kind==='haupt')attrs=`data-kind="haupt" data-h="${o.hi}"`;
+  else{
+    attrs=`data-kind="neben" data-h="${o.hi}" data-n="${o.ni}"`;
+    const opts=o.hauptNames.map((h,j)=>`<option value="${j}"${j===o.hi?' selected':''}>${katEsc(h)}</option>`).join('');
+    move=`<select class="kat-move" title="Anderer Hauptkategorie zuordnen">${opts}</select>`;
+  }
+  const cls='kat-row'+(kind==='haupt'?' haupt':kind==='neben'?' neben':'');
+  return `<div class="${cls}" ${attrs}>
+    <span class="kat-grip" draggable="true" title="Ziehen zum Sortieren">⠿</span>
+    <input class="kat-name" value="${katEsc(name)}" ${attrs}>
+    ${move}
+    <button class="kat-del" ${attrs} title="Löschen">×</button>
+  </div>`;
+}
+const KAT_BESCHREIBUNG='Beschriftungen ändern, Kategorien hinzufügen oder löschen, Nebenkategorien per Auswahl einer anderen Hauptkategorie zuordnen und die Reihenfolge durch Ziehen am Griff anpassen. Umbenennungen ziehen automatisch durch alle Posten. Eine Kategorie, die noch von einem Posten genutzt wird, lässt sich nicht löschen.';
+function katBlocksHTML(){
+  const hauptNames=katAusHaupts();
+  const ein=state.kategorien.einnahmen.map((n,i)=>katRowHTML('ein',n,{i})).join('');
+  const aus=state.kategorien.ausgaben.map((e,hi)=>{
+    const neben=e.neben.map((n,ni)=>katRowHTML('neben',n,{hi,ni,hauptNames})).join('');
+    return `<div class="kat-haupt" data-h="${hi}">
+      ${katRowHTML('haupt',e.haupt,{hi})}
+      <div class="kat-neben-list" data-h="${hi}">${neben}</div>
+      <button class="kat-add neben" data-add="neben" data-h="${hi}">+ Nebenkategorie</button>
+    </div>`;
+  }).join('');
+  return `<div class="kat-block">
+      <h4>Einnahmen</h4>
+      <div class="kat-list" data-kind="ein">${ein}</div>
+      <button class="kat-add" data-add="ein">+ Einnahme-Kategorie</button>
+    </div>
+    <div class="kat-block">
+      <h4>Ausgaben</h4>
+      <div class="kat-list" data-kind="haupt">${aus}</div>
+      <button class="kat-add" data-add="haupt">+ Hauptkategorie</button>
+    </div>`;
+}
+
+function katRename(ds,raw){
+  const name=raw.trim();
+  if(ds.kind==='ein'){
+    const i=+ds.i,arr=state.kategorien.einnahmen,old=arr[i];
+    if(name===old)return;
+    if(!name){notify('Der Name darf nicht leer sein.','Ungültig');render();return;}
+    if(arr.some((x,j)=>j!==i&&x.toLowerCase()===name.toLowerCase())){notify('Diese Einnahme-Kategorie gibt es bereits.','Doppelter Name');render();return;}
+    arr[i]=name;
+    state.posten.forEach(p=>{if(p.typ==='einnahme'&&p.hauptkategorie===old)p.hauptkategorie=name;});
+  }else if(ds.kind==='haupt'){
+    const h=+ds.h,e=state.kategorien.ausgaben[h],old=e.haupt;
+    if(name===old)return;
+    if(!name){notify('Der Name darf nicht leer sein.','Ungültig');render();return;}
+    if(state.kategorien.ausgaben.some((x,j)=>j!==h&&x.haupt.toLowerCase()===name.toLowerCase())){notify('Diese Hauptkategorie gibt es bereits.','Doppelter Name');render();return;}
+    e.haupt=name;
+    state.posten.forEach(p=>{if(p.typ==='ausgabe'&&p.hauptkategorie===old)p.hauptkategorie=name;});
+  }else{
+    const h=+ds.h,n=+ds.n,e=state.kategorien.ausgaben[h],old=e.neben[n];
+    if(name===old)return;
+    if(!name){notify('Der Name darf nicht leer sein.','Ungültig');render();return;}
+    if(e.neben.some((x,j)=>j!==n&&x.toLowerCase()===name.toLowerCase())){notify('Diese Nebenkategorie gibt es in dieser Hauptkategorie bereits.','Doppelter Name');render();return;}
+    e.neben[n]=name;
+    state.posten.forEach(p=>{if(p.typ==='ausgabe'&&p.hauptkategorie===e.haupt&&p.nebenkategorie===old)p.nebenkategorie=name;});
+  }
+  saveState();render();
+}
+function katAdd(kind,hAttr){
+  let focusSel;
+  if(kind==='ein'){
+    state.kategorien.einnahmen.push(uniqueName('Neue Kategorie',state.kategorien.einnahmen));
+    focusSel='.kat-list[data-kind="ein"] .kat-row:last-child .kat-name';
+  }else if(kind==='haupt'){
+    state.kategorien.ausgaben.push({haupt:uniqueName('Neue Hauptkategorie',katAusHaupts()),neben:[]});
+    focusSel='.kat-list[data-kind="haupt"] .kat-haupt:last-child .kat-row.haupt .kat-name';
+  }else{
+    const e=state.kategorien.ausgaben[+hAttr];
+    e.neben.push(uniqueName('Neue Nebenkategorie',e.neben));
+    focusSel=`.kat-haupt[data-h="${hAttr}"] .kat-neben-list .kat-row:last-child .kat-name`;
+  }
+  saveState();render();
+  const el=document.querySelector(focusSel);if(el){el.focus();el.select();}
+}
+function katDelete(ds){
+  if(ds.kind==='ein'){
+    const i=+ds.i,name=state.kategorien.einnahmen[i];
+    const used=countPosten(p=>p.typ==='einnahme'&&p.hauptkategorie===name);
+    if(used){notify(blockMsg(used),'Löschen nicht möglich');return;}
+    confirmAsk('„'+name+'" wirklich löschen?',()=>{state.kategorien.einnahmen.splice(i,1);saveState();render();},{title:'Kategorie löschen',okLabel:'Löschen',danger:true});
+  }else if(ds.kind==='haupt'){
+    const h=+ds.h,e=state.kategorien.ausgaben[h];
+    const used=countPosten(p=>p.typ==='ausgabe'&&p.hauptkategorie===e.haupt);
+    if(used){notify(blockMsg(used),'Löschen nicht möglich');return;}
+    confirmAsk('„'+e.haupt+'" samt Nebenkategorien wirklich löschen?',()=>{state.kategorien.ausgaben.splice(h,1);saveState();render();},{title:'Hauptkategorie löschen',okLabel:'Löschen',danger:true});
+  }else{
+    const h=+ds.h,n=+ds.n,e=state.kategorien.ausgaben[h],name=e.neben[n];
+    const used=countPosten(p=>p.typ==='ausgabe'&&p.hauptkategorie===e.haupt&&p.nebenkategorie===name);
+    if(used){notify(blockMsg(used),'Löschen nicht möglich');return;}
+    confirmAsk('„'+name+'" wirklich löschen?',()=>{e.neben.splice(n,1);saveState();render();},{title:'Nebenkategorie löschen',okLabel:'Löschen',danger:true});
+  }
+}
+function katMove(h,n,zielH){
+  if(zielH===h||isNaN(zielH))return;
+  const von=state.kategorien.ausgaben[h],ziel=state.kategorien.ausgaben[zielH],name=von.neben[n];
+  if(ziel.neben.some(x=>x.toLowerCase()===name.toLowerCase())){
+    notify('„'+ziel.haupt+'" enthält bereits eine Nebenkategorie „'+name+'". Benenne zuerst eine davon um.','Zuordnung nicht möglich');render();return;
+  }
+  von.neben.splice(n,1);ziel.neben.push(name);
+  state.posten.forEach(p=>{if(p.typ==='ausgabe'&&p.hauptkategorie===von.haupt&&p.nebenkategorie===name)p.hauptkategorie=ziel.haupt;});
+  saveState();render();
+}
+// Drag & Drop (Reihenfolge innerhalb einer Liste)
+let katDrag=null;
+function katSameList(d,t){if(d.kind!==t.kind)return false;if(d.kind==='neben')return d.h===t.h;return true;}
+function katClearMarks(){document.querySelectorAll('.kat-row.drop-before,.kat-row.drop-after').forEach(r=>r.classList.remove('drop-before','drop-after'));}
+function katMoveByIndex(arr,from,to,after){
+  const item=arr[from];let at=after?to+1:to;arr.splice(from,1);if(from<at)at--;
+  if(at<0)at=0;if(at>arr.length)at=arr.length;arr.splice(at,0,item);
+}
+function katDrop(row,e){
+  const r=row.getBoundingClientRect(),after=e.clientY>r.top+r.height/2,kind=katDrag.kind;
+  if(kind==='ein')katMoveByIndex(state.kategorien.einnahmen,+katDrag.i,+row.dataset.i,after);
+  else if(kind==='haupt')katMoveByIndex(state.kategorien.ausgaben,+katDrag.h,+row.dataset.h,after);
+  else katMoveByIndex(state.kategorien.ausgaben[+katDrag.h].neben,+katDrag.n,+row.dataset.n,after);
+  katClearMarks();katDrag=null;saveState();render();
+}
+function bindKatEditor(){
+  const view=document.getElementById('view');
+  view.querySelectorAll('.kat-name').forEach(inp=>{
+    inp.addEventListener('change',()=>katRename(inp.dataset,inp.value));
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();inp.blur();}});
+  });
+  view.querySelectorAll('.kat-move').forEach(sel=>{
+    sel.addEventListener('change',()=>{const row=sel.closest('.kat-row');katMove(+row.dataset.h,+row.dataset.n,+sel.value);});
+  });
+  view.querySelectorAll('.kat-del').forEach(b=>b.addEventListener('click',()=>katDelete(b.dataset)));
+  view.querySelectorAll('.kat-add').forEach(b=>b.addEventListener('click',()=>katAdd(b.dataset.add,b.dataset.h)));
+  view.querySelectorAll('.kat-grip').forEach(g=>{
+    g.addEventListener('dragstart',e=>{const row=g.closest('.kat-row');katDrag={...row.dataset,el:row};row.classList.add('dragging');e.dataTransfer.effectAllowed='move';try{e.dataTransfer.setData('text/plain','');}catch(_){} });
+    g.addEventListener('dragend',()=>{if(katDrag&&katDrag.el)katDrag.el.classList.remove('dragging');katClearMarks();katDrag=null;});
+  });
+  view.querySelectorAll('.kat-row').forEach(row=>{
+    row.addEventListener('dragover',e=>{if(!katDrag||!katSameList(katDrag,row.dataset))return;e.preventDefault();katClearMarks();const r=row.getBoundingClientRect();row.classList.add(e.clientY>r.top+r.height/2?'drop-after':'drop-before');});
+    row.addEventListener('drop',e=>{if(!katDrag||!katSameList(katDrag,row.dataset))return;e.preventDefault();katDrop(row,e);});
+  });
+}
+
 function renderEinstellungen(){
   document.getElementById('view').innerHTML=`
     <div class="settings">
@@ -695,6 +932,13 @@ function renderEinstellungen(){
           <button data-theme="light"${state.theme==='light'?' class="on"':''}>Hell</button>
           <button data-theme="dark"${state.theme==='dark'?' class="on"':''}>Dunkel</button>
           <button data-theme="system"${(!state.theme||state.theme==='system')?' class="on"':''}>System</button>
+        </div>
+      </div>
+      <div class="scard">
+        <h3>Kategorien</h3>
+        <p>${KAT_BESCHREIBUNG}</p>
+        <div class="row">
+          <button class="btn" id="setKat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>Editieren</button>
         </div>
       </div>
       <div class="scard">
@@ -711,6 +955,21 @@ function renderEinstellungen(){
   document.getElementById('setExport').onclick=exportJson;
   document.getElementById('setImport').onclick=()=>document.getElementById('setImportFile').click();
   document.getElementById('setImportFile').onchange=e=>{if(e.target.files[0])importJson(e.target.files[0]);e.target.value='';};
+  document.getElementById('setKat').onclick=()=>{ui.view='kategorien';render();};
+}
+
+function renderKategorienSeite(){
+  document.getElementById('view').innerHTML=`
+    <div class="settings">
+      <button class="btn" id="katBack" style="margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>Einstellungen</button>
+      <div class="scard">
+        <h3>Kategorien</h3>
+        <p>${KAT_BESCHREIBUNG}</p>
+        ${katBlocksHTML()}
+      </div>
+    </div>`;
+  document.getElementById('katBack').onclick=()=>{ui.view='einstellungen';render();};
+  bindKatEditor();
 }
 
 /* =====================================================================
@@ -718,11 +977,23 @@ function renderEinstellungen(){
    ===================================================================== */
 let pm={postenId:null, typ:'ausgabe', draftKond:{}, curYear:null};
 
-function refreshCatLists(){
-  const haupt=[...new Set([...KAT_REIHENFOLGE,'Erwerbseinkommen','Unterhalt','Sonstiges',...state.posten.map(p=>p.hauptkategorie)])].filter(Boolean);
-  const neben=[...new Set(state.posten.map(p=>p.nebenkategorie))].filter(Boolean);
-  document.getElementById('catList').innerHTML=haupt.map(c=>`<option value="${c}">`).join('');
-  document.getElementById('subList').innerHTML=neben.map(c=>`<option value="${c}">`).join('');
+function fillHaupt(typ, current){
+  const sel=document.getElementById('fHaupt');
+  const opts=typ==='einnahme'?katEin():katAusHaupts();
+  let html=`<option value="" disabled${current?'':' selected'}>Kategorie wählen</option>`;
+  html+=opts.map(c=>`<option value="${c}"${c===current?' selected':''}>${c}</option>`).join('');
+  if(current && !opts.includes(current)) html+=`<option value="${current}" selected>${current} (alt)</option>`;
+  sel.innerHTML=html;
+}
+function fillNeben(haupt, current){
+  const sel=document.getElementById('fNeben');
+  const hasHaupt=!!haupt;
+  const opts=katAusNeben(haupt);
+  let html=`<option value="">Kategorie wählen</option>`;
+  html+=opts.map(c=>`<option value="${c}"${c===current?' selected':''}>${c}</option>`).join('');
+  if(current && !opts.includes(current)) html+=`<option value="${current}" selected>${current} (alt)</option>`;
+  sel.innerHTML=html;
+  sel.disabled=!hasHaupt;
 }
 function setTyp(typ){
   pm.typ=typ;
@@ -730,28 +1001,37 @@ function setTyp(typ){
     const on=b.dataset.typ===typ; b.classList.remove('in','out','on');
     if(on){b.classList.add('on',typ==='einnahme'?'in':'out');}
   });
+  document.getElementById('fNebenWrap').classList.toggle('hidden', typ==='einnahme');
 }
-function blankKond(){return {aktiv:false,betrag:0,rhythmus:'monatlich',startMonat:0,abbuchungstag:'',overrides:{}};}
-function toggleStartVis(){document.getElementById('startWrap').style.visibility=document.getElementById('fRhythmus').value==='monatlich'?'hidden':'visible';}
+function blankKond(){return {aktiv:false,betrag:0,rhythmus:'monatlich',startMonat:0,modus:'auto',manuell:[]};}
+function currentModus(){const b=document.querySelector('#condModus button.on');return b?b.dataset.modus:'auto';}
+function setCondModus(modus){
+  document.querySelectorAll('#condModus button').forEach(b=>b.classList.toggle('on',b.dataset.modus===modus));
+  const manuell=modus==='manuell';
+  document.querySelectorAll('#condFields .auto-field').forEach(el=>el.classList.toggle('hidden',manuell));
+  document.getElementById('manuellWrap').classList.toggle('hidden',!manuell);
+}
+function readManuell(){return Array.from({length:12},(_,i)=>{const el=document.querySelector('#mGrid input[data-m="'+i+'"]');return el?parseBetrag(el.value):0;});}
+function writeManuell(arr){for(let i=0;i<12;i++){const el=document.querySelector('#mGrid input[data-m="'+i+'"]');if(el)el.value=(arr&&arr[i])?fmtBetrag(arr[i]):'';}}
 
 function readCondFields(){
   return {
     aktiv:document.getElementById('condActive').classList.contains('on'),
-    betrag:parseFloat(document.getElementById('fBetrag').value)||0,
+    betrag:parseBetrag(document.getElementById('fBetrag').value),
     rhythmus:document.getElementById('fRhythmus').value,
     startMonat:parseInt(document.getElementById('fStart').value)||0,
-    abbuchungstag:document.getElementById('fTag').value.trim(),
-    overrides:(pm.draftKond[pm.curYear]&&pm.draftKond[pm.curYear].overrides)||{}
+    modus:currentModus(),
+    manuell:readManuell()
   };
 }
 function writeCondFields(k){
   const sw=document.getElementById('condActive');
   sw.classList.toggle('on',!!k.aktiv);
-  document.getElementById('fBetrag').value=k.betrag||'';
+  document.getElementById('fBetrag').value=k.betrag?fmtBetrag(k.betrag):'';
   document.getElementById('fRhythmus').value=k.rhythmus||'monatlich';
   document.getElementById('fStart').value=k.startMonat||0;
-  document.getElementById('fTag').value=k.abbuchungstag||'';
-  toggleStartVis();
+  writeManuell(k.manuell||[]);
+  setCondModus(k.modus||'auto');
   document.getElementById('condFields').classList.toggle('off',!k.aktiv);
   document.getElementById('condActiveLabel').textContent=k.aktiv?'In diesem Jahr aktiv':'In diesem Jahr inaktiv';
 }
@@ -770,13 +1050,13 @@ function openPosten(id, fromBuchId){
   document.getElementById('pmSave').textContent=isEdit?'Speichern':'Hinzufügen';
   document.getElementById('pmDelete').classList.toggle('hidden',!isEdit);
   document.getElementById('fStart').innerHTML=MONATE_LANG.map((m,i)=>`<option value="${i}">${m}</option>`).join('');
-  refreshCatLists();
+  document.getElementById('mGrid').innerHTML=MONATE_LANG.map((m,i)=>`<div class="mcell"><span>${m}</span><div class="minput"><input type="text" inputmode="decimal" data-m="${i}" placeholder="0,00"><button type="button" class="mclear" data-clear="${i}" aria-label="${m} zurücksetzen">×</button></div></div>`).join('');
 
   const p=isEdit?state.posten.find(x=>x.id===id):null;
   document.getElementById('fBez').value=p?p.bezeichnung:'';
   setTyp(p?p.typ:'ausgabe');
-  document.getElementById('fHaupt').value=p?p.hauptkategorie:'';
-  document.getElementById('fNeben').value=p?p.nebenkategorie:'';
+  fillHaupt(pm.typ, p?p.hauptkategorie:'');
+  fillNeben(p?p.hauptkategorie:'', p?p.nebenkategorie:'');
   document.getElementById('fVz').value=p?p.verzichtbarkeit:3;
 
   // Konditionen-Draft aus allen Büchern laden
@@ -809,13 +1089,19 @@ function closePosten(){document.getElementById('overlay').classList.remove('on')
 function savePosten(){
   const bez=document.getElementById('fBez').value.trim();
   if(!bez){document.getElementById('fBez').focus();return;}
+  const haupt=document.getElementById('fHaupt').value;
+  if(!haupt){notify('Bitte zuerst eine Hauptkategorie wählen.','Pflichtfeld');return;}
   commitCurYear();
   const ident={
     bezeichnung:bez, typ:pm.typ,
-    hauptkategorie:document.getElementById('fHaupt').value.trim()||(pm.typ==='einnahme'?'Sonstiges':'Sonstige Verträge'),
-    nebenkategorie:document.getElementById('fNeben').value.trim(),
+    hauptkategorie:haupt,
+    nebenkategorie:pm.typ==='einnahme'?'':document.getElementById('fNeben').value,
     verzichtbarkeit:parseInt(document.getElementById('fVz').value)||3,
   };
+  const isEdit=!!pm.postenId;
+  confirmAsk('Sicher?',()=>doSavePosten(ident),{title:isEdit?'Speichern':'Hinzufügen',okLabel:'Ja',cancelLabel:'Nein'});
+}
+function doSavePosten(ident){
   let pid=pm.postenId;
   if(pid){const p=state.posten.find(x=>x.id===pid);Object.assign(p,ident);}
   else{pid=uid('p');state.posten.push({id:pid,...ident});}
@@ -912,6 +1198,7 @@ function importJson(file){
     const d=migrate(JSON.parse(r.result));
     if(!Array.isArray(d.posten)||!Array.isArray(d.buecher))throw 0;
     state.posten=d.posten; state.buecher=d.buecher;
+    state.kategorien=normalizeKat(d.kategorien);
     if(d.theme)state.theme=d.theme; applyTheme();
     ui.view='bibliothek'; ui.activeBuchId=null; closeCtx();
     render();
@@ -928,11 +1215,13 @@ function showDialog(o){
   const ok=document.getElementById('dlgOk');
   ok.textContent=o.okLabel||'OK';
   ok.className='btn '+(o.danger?'danger':'prim');
-  document.getElementById('dlgCancel').classList.toggle('hidden',!o.cancel);
+  const c=document.getElementById('dlgCancel');
+  c.textContent=o.cancelLabel||'Abbrechen';
+  c.classList.toggle('hidden',!o.cancel);
   document.getElementById('dlgOverlay').classList.add('on');
 }
 function closeDlg(){document.getElementById('dlgOverlay').classList.remove('on');dlgYes=null;}
-function confirmAsk(msg,onYes,opts){opts=opts||{};dlgYes=onYes;showDialog({kicker:opts.kicker||'Bestätigen',title:opts.title||'Bist du sicher?',msg:msg,okLabel:opts.okLabel||'Bestätigen',danger:opts.danger,cancel:true});}
+function confirmAsk(msg,onYes,opts){opts=opts||{};dlgYes=onYes;showDialog({kicker:opts.kicker||'Bestätigen',title:opts.title||'Bist du sicher?',msg:msg,okLabel:opts.okLabel||'Bestätigen',cancelLabel:opts.cancelLabel,danger:opts.danger,cancel:true});}
 function notify(msg,title){dlgYes=null;showDialog({kicker:'Hinweis',title:title||'Hinweis',msg:msg,okLabel:'OK',danger:false,cancel:false});}
 
 /* ---- Context-Menü (Burger, fixed positioniert) ---- */
@@ -970,12 +1259,23 @@ document.getElementById('navBook').onclick=e=>{
 };
 
 document.getElementById('pmClose').onclick=closePosten;
-document.getElementById('pmCancel').onclick=closePosten;
+document.getElementById('pmCancel').onclick=()=>confirmAsk('Sicher? Alle nicht gespeicherten Änderungen gehen verloren.',closePosten,{title:'Abbrechen',okLabel:'Ja',cancelLabel:'Nein'});
 document.getElementById('pmSave').onclick=savePosten;
 document.getElementById('pmDelete').onclick=deletePosten;
 document.getElementById('overlay').onclick=e=>{if(e.target.id==='overlay')closePosten();};
-document.querySelectorAll('#fTyp button').forEach(b=>b.onclick=()=>setTyp(b.dataset.typ));
-document.getElementById('fRhythmus').onchange=toggleStartVis;
+document.querySelectorAll('#fTyp button').forEach(b=>b.onclick=()=>{setTyp(b.dataset.typ);fillHaupt(b.dataset.typ,'');fillNeben('','');});
+document.getElementById('fHaupt').onchange=e=>fillNeben(e.target.value,'');
+document.querySelectorAll('#condModus button').forEach(b=>b.onclick=()=>{
+  const modus=b.dataset.modus;
+  if(modus==='manuell' && readManuell().every(v=>v===0)){
+    const tmp={aktiv:true,betrag:parseBetrag(document.getElementById('fBetrag').value),rhythmus:document.getElementById('fRhythmus').value,startMonat:parseInt(document.getElementById('fStart').value)||0,modus:'auto'};
+    writeManuell(Array.from({length:12},(_,m)=>monatsbetrag(tmp,m)));
+  }
+  setCondModus(modus);
+});
+document.getElementById('fBetrag').onblur=function(){formatField(this);};
+document.getElementById('mGrid').addEventListener('focusout',e=>{if(e.target.matches('input[data-m]'))formatField(e.target);});
+document.getElementById('mGrid').addEventListener('click',e=>{const b=e.target.closest('.mclear');if(b){const inp=document.querySelector('#mGrid input[data-m="'+b.dataset.clear+'"]');if(inp){inp.value='';inp.focus();}}});
 document.getElementById('condActive').onclick=function(){this.classList.toggle('on');const on=this.classList.contains('on');document.getElementById('condFields').classList.toggle('off',!on);document.getElementById('condActiveLabel').textContent=on?'In diesem Jahr aktiv':'In diesem Jahr inaktiv';};
 document.getElementById('condYear').onchange=function(){commitCurYear();loadYear(parseInt(this.value));};
 
