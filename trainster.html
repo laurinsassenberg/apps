@@ -6,9 +6,24 @@
 <meta name="theme-color" content="#0e0f12">
 <title>Trainster</title>
 <style>
+  *, *::before, *::after { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: #0e0f12; }
   #root { min-height: 100vh; }
   .boot { color:#8a8f9a; font-family: system-ui, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
+  /* Layout-Utilities (Tailwind-Ersatz für den Standalone-Build) */
+  .flex { display: flex; }
+  .flex-col { flex-direction: column; }
+  .items-center { align-items: center; }
+  .items-start { align-items: flex-start; }
+  .items-baseline { align-items: baseline; }
+  .justify-center { justify-content: center; }
+  .justify-between { justify-content: space-between; }
+  .justify-around { justify-content: space-around; }
+  .gap-1 { gap: 0.25rem; }
+  .gap-2 { gap: 0.5rem; }
+  .gap-3 { gap: 0.75rem; }
+  .text-center { text-align: center; }
+  .text-left { text-align: left; }
 </style>
 </head>
 <body>
@@ -48,7 +63,9 @@ const {
   Download, Clock, Layers, ChevronDown
 } = ICONS;
 
-/* ===== App ===== */
+/* ===== App (v2.1.0) ===== */
+
+
 /* ============================================================
    THEME — "Jarvis Training Console"
    ============================================================ */
@@ -85,17 +102,34 @@ function migratePlan(p) {
   if (!p || !Array.isArray(p.days)) return p;
   return {
     ...p,
+    restCompound: p.restCompound != null ? p.restCompound : 90,
+    restIsolation: p.restIsolation != null ? p.restIsolation : 60,
+    exRest: p.exRest != null ? p.exRest : 120,
     days: p.days.map((d) => {
-      if (d.label !== undefined && d.name === undefined) return d;
       let label = d.label;
       if (label === undefined) {
         const raw = typeof d.name === "string" ? d.name : "";
         label = raw.replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
       }
       const { name, ...rest } = d;
-      return { ...rest, label: label || "" };
+      const exercises = Array.isArray(d.exercises)
+        ? d.exercises.map((e) =>
+            (e.type === "strength" || e.type === "hold") && !e.category
+              ? { ...e, category: e.type === "hold" ? "isolation" : "compound" }
+              : e
+          )
+        : d.exercises;
+      return { ...rest, exercises, label: label || "" };
     }),
   };
+}
+
+/* Satzpause einer Übung aus Kategorie (Compound/Isolation) + Plan-Werten ableiten. */
+function setRestFor(plan, ex) {
+  const cat = ex && ex.category ? ex.category : (ex && ex.type === "hold" ? "isolation" : "compound");
+  const comp = plan.restCompound != null ? plan.restCompound : 90;
+  const iso = plan.restIsolation != null ? plan.restIsolation : 60;
+  return cat === "isolation" ? iso : comp;
 }
 
 /* ============================================================
@@ -104,33 +138,36 @@ function migratePlan(p) {
 const SEED_PLAN = {
   id: "seed_split",
   name: "Hypertrophie 2er-Split",
+  restCompound: 90,
+  restIsolation: 60,
+  exRest: 120,
   days: [
     {
       id: "tag1", label: "Oberkörper",
       exercises: [
-        { id: "t1_warm", type: "duration", name: "Aufwärmen", minutes: 8, desc: "Lockeres Cardio plus Schulter- und Brustmobilisation.", hint: "Puls hochfahren, Gelenke öffnen — noch keine Maximalkraft." },
-        { id: "t1_bank", type: "strength", name: "Bankdrücken / Brustpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Brust, vordere Schulter, Trizeps.", hint: "Schulterblätter zusammen und nach unten, kontrollierte Exzentrik." },
-        { id: "t1_lat", type: "strength", name: "Latzug", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Breiter Rücken (Latissimus).", hint: "Brust raus, Stange zur oberen Brust, nicht im Schwung." },
-        { id: "t1_press", type: "strength", name: "Schulterdrücken", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Vordere und seitliche Schulter.", hint: "Rumpf fest, nicht ins Hohlkreuz drücken." },
-        { id: "t1_row", type: "strength", name: "Kabelrudern", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Mittlerer Rücken.", hint: "Ellbogen eng am Körper, Schulterblätter aktiv." },
-        { id: "t1_fly", type: "strength", name: "Fly", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Brust-Isolation.", hint: "Leichte Ellbogenbeugung halten, Dehnung spüren." },
-        { id: "t1_tri", type: "strength", name: "Trizeps-Pushdown", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Trizeps-Isolation.", hint: "Ellbogen fixiert am Körper." },
-        { id: "t1_bi", type: "strength", name: "Bizeps-Curl", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Bizeps-Isolation.", hint: "Kein Schwung aus dem Rücken." },
-        { id: "t1_side", type: "strength", name: "Seitheben", optional: true, sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Seitliche Schulter. Optional.", hint: "Leichtes Gewicht, Ellbogen führt." },
+        { id: "t1_warm", type: "duration", name: "Aufwärmen", minutes: 10, desc: "Lockeres Cardio plus Schulter- und Brustmobilisation.", hint: "Puls hochfahren, Gelenke öffnen — noch keine Maximalkraft." },
+        { id: "t1_bank", type: "strength", category: "compound", name: "Bankdrücken / Brustpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Brust, vordere Schulter, Trizeps.", hint: "Schulterblätter zusammen und nach unten, kontrollierte Exzentrik." },
+        { id: "t1_lat", type: "strength", category: "compound", name: "Latzug", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Breiter Rücken (Latissimus).", hint: "Brust raus, Stange zur oberen Brust, nicht im Schwung." },
+        { id: "t1_press", type: "strength", category: "compound", name: "Schulterdrücken", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Vordere und seitliche Schulter.", hint: "Rumpf fest, nicht ins Hohlkreuz drücken." },
+        { id: "t1_row", type: "strength", category: "compound", name: "Kabelrudern", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Mittlerer Rücken.", hint: "Ellbogen eng am Körper, Schulterblätter aktiv." },
+        { id: "t1_fly", type: "strength", category: "isolation", name: "Fly", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Brust-Isolation.", hint: "Leichte Ellbogenbeugung halten, Dehnung spüren." },
+        { id: "t1_tri", type: "strength", category: "isolation", name: "Trizeps-Pushdown", sets: 3, repsMin: 10, repsMax: 15, weight: 0, desc: "Trizeps-Isolation.", hint: "Ellbogen fixiert am Körper." },
+        { id: "t1_bi", type: "strength", category: "isolation", name: "Bizeps-Curl", sets: 3, repsMin: 10, repsMax: 15, weight: 0, desc: "Bizeps-Isolation.", hint: "Kein Schwung aus dem Rücken." },
+        { id: "t1_side", type: "strength", category: "isolation", name: "Seitheben", optional: true, sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Seitliche Schulter. Optional.", hint: "Leichtes Gewicht, Ellbogen führt." },
         { id: "t1_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Laufband, Zone 2.", hint: "Lockeres Tempo — du könntest noch sprechen." },
       ],
     },
     {
       id: "tag2", label: "Unterkörper + Rumpf",
       exercises: [
-        { id: "t2_warm", type: "duration", name: "Aufwärmen", minutes: 8, desc: "Lockeres Cardio + Hüft-/Kniemobilisation, 1–2 leichte Aufwärmsätze Kniebeuge.", hint: "Gelenke vorbereiten, Bewegungsumfang öffnen." },
-        { id: "t2_squat", type: "strength", name: "Kniebeuge", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 150, desc: "Beine gesamt, Rumpf.", hint: "Knie in Zehenrichtung, Tiefe so weit Technik sauber bleibt." },
-        { id: "t2_legpress", type: "strength", name: "Beinpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Quadrizeps, Gesäß.", hint: "Knie nicht ganz durchstrecken, Füße schulterbreit." },
-        { id: "t2_rdl", type: "strength", name: "Rumänisches Kreuzheben", sets: 4, repsMin: 8, repsMax: 12, weight: 0, rest: 120, desc: "Beinbeuger, Gesäß. Alt.: Beinbeuger-Maschine.", hint: "Hüfte nach hinten, Rücken neutral, leichte Kniebeugung." },
-        { id: "t2_legext", type: "strength", name: "Beinstrecker", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 75, desc: "Quadrizeps-Isolation.", hint: "Oben kurz halten, kontrolliert ablassen." },
-        { id: "t2_calf", type: "strength", name: "Wadenheben", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Waden.", hint: "Volle Streckung oben, Dehnung unten." },
-        { id: "t2_abs", type: "strength", name: "Bauch", sets: 3, repsMin: 12, repsMax: 15, weight: 0, rest: 60, desc: "Bauch-Maschine oder Crunch (Gewicht 0 = Körpergewicht).", hint: "Bewegung aus dem Bauch, nicht aus dem Nacken." },
-        { id: "t2_plank", type: "hold", name: "Plank", sets: 3, seconds: 40, rest: 60, desc: "Statische Rumpfspannung.", hint: "Gerade Linie Kopf–Hüfte–Ferse, Po anspannen." },
+        { id: "t2_warm", type: "duration", name: "Aufwärmen", minutes: 10, desc: "Lockeres Cardio + Hüft-/Kniemobilisation, 1–2 leichte Aufwärmsätze Kniebeuge.", hint: "Gelenke vorbereiten, Bewegungsumfang öffnen." },
+        { id: "t2_squat", type: "strength", category: "compound", name: "Kniebeuge", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Beine gesamt, Rumpf.", hint: "Knie in Zehenrichtung, Tiefe so weit Technik sauber bleibt." },
+        { id: "t2_legpress", type: "strength", category: "compound", name: "Beinpresse", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Quadrizeps, Gesäß.", hint: "Knie nicht ganz durchstrecken, Füße schulterbreit." },
+        { id: "t2_rdl", type: "strength", category: "compound", name: "Rumänisches Kreuzheben", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Beinbeuger, Gesäß. Alt.: Beinbeuger-Maschine.", hint: "Hüfte nach hinten, Rücken neutral, leichte Kniebeugung." },
+        { id: "t2_legext", type: "strength", category: "isolation", name: "Beinstrecker", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Quadrizeps-Isolation.", hint: "Oben kurz halten, kontrolliert ablassen." },
+        { id: "t2_calf", type: "strength", category: "isolation", name: "Wadenheben", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Waden.", hint: "Volle Streckung oben, Dehnung unten." },
+        { id: "t2_abs", type: "strength", category: "isolation", name: "Bauch", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Bauch-Maschine oder Crunch (Gewicht 0 = Körpergewicht).", hint: "Bewegung aus dem Bauch, nicht aus dem Nacken." },
+        { id: "t2_plank", type: "hold", category: "isolation", name: "Plank", sets: 3, seconds: 45, desc: "Statische Rumpfspannung.", hint: "Gerade Linie Kopf–Hüfte–Ferse, Po anspannen." },
         { id: "t2_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Rudergerät, Zone 2.", hint: "Lockeres Tempo, Puls oben halten." },
       ],
     },
@@ -165,6 +202,60 @@ function volumeOf(entry) {
   if (entry.type !== "strength") return 0;
   return entry.actual.reduce((a, s) => a + (Number(s.reps) || 0) * (Number(s.weight) || 0), 0);
 }
+
+/* Effort pro Satz (Nähe zum Versagen, RIR-basiert).
+   base = Reizintensität auf der Sweet-Spot-Achse: leicht < fordernd (Optimum) < limit (zu viel) */
+const EFFORT = {
+  leicht:   { label: "Locker",   sub: "noch einiges drin", color: C.muted, base: 30 },
+  fordernd: { label: "Fordernd", sub: "1–2 raus",          color: C.mint,  base: 85 },
+  limit:    { label: "Am Limit", sub: "alles gegeben",     color: C.clay,  base: 96 },
+};
+const EFFORT_ORDER = ["leicht", "fordernd", "limit"];
+
+/* Reizintensität (0–100). Optimum-Fenster 80–92; Effort als Haupttreiber, Korridor korrigiert leicht. */
+function scoreStrengthSet(ex, s) {
+  let v = (EFFORT[s.effort] || EFFORT.fordernd).base;
+  const r = Number(s.reps) || 0;
+  if (r > ex.repsMax) v -= 8;        // mehr als Korridor geschafft → war leichter als angegeben
+  else if (r < ex.repsMin) v += 4;   // unter Korridor → näher am Limit
+  return Math.max(0, Math.min(100, v));
+}
+function scoreStrength(ex, sets) {
+  if (!sets.length) return 0;
+  return Math.round(sets.reduce((a, s) => a + scoreStrengthSet(ex, s), 0) / sets.length);
+}
+function scoreHold(ex, sets) {
+  if (!sets.length) return 0;
+  return Math.round(sets.reduce((a, s) => a + (EFFORT[s.effort] || EFFORT.fordernd).base, 0) / sets.length);
+}
+const evalFromScore = (s) => s < 50 ? "verfehlt" : (s >= 80 && s <= 92) ? "uebertroffen" : "erreicht";
+function stimulus(score) {
+  if (score < 50) return { label: "Reiz zu gering", color: C.clay, hint: "Zu locker — für Wachstum näher ans Limit (etwa 1–2 Wdh. vor dem Versagen)." };
+  if (score < 80) return { label: "Solide", color: C.gold, hint: "Ordentlicher Reiz. Etwas näher ans Limit geht noch." };
+  if (score <= 92) return { label: "Optimaler Reiz", color: C.mint, hint: "Im Sweet Spot — wenn die Wdh. oben im Korridor rauskommen, Gewicht erhöhen." };
+  return { label: "Sehr hart", color: C.gold, hint: "Maximal nah am Versagen. Effektiv, aber kostet viel Erholung — nicht jeder Satz muss bis zum Limit." };
+}
+
+/* Cardio/Dauer: Zeitformat + Bewertung (zu kurz / im Fenster bis +5 min / zu lang) */
+const DURATION_TOLERANCE = 300; // Sekunden über Soll, die noch als geschafft gelten
+function fmtDur(sec) {
+  sec = Math.round(Math.abs(sec));
+  if (sec < 60) return `${sec} Sek`;
+  const m = Math.floor(sec / 60), s = sec % 60;
+  return s ? `${m}:${String(s).padStart(2, "0")} min` : `${m} min`;
+}
+function durationResult(targetMin, elapsedSec) {
+  const targetSec = targetMin * 60;
+  const el = Math.max(0, Math.round(elapsedSec || 0));
+  const diff = el - targetSec; // >0 drüber, <0 drunter
+  const ok = el >= targetSec && diff <= DURATION_TOLERANCE;
+  let sub;
+  if (diff === 0) sub = "punktgenau getroffen";
+  else if (diff < 0) sub = `Soll um ${fmtDur(diff)} verfehlt`;
+  else if (ok) sub = `Soll um ${fmtDur(diff)} übertroffen`;
+  else sub = `Soll um ${fmtDur(diff)} überschritten — zu lang`;
+  return { ok, diff, elapsedSec: el, sub };
+}
 const EVAL_META = {
   uebertroffen: { label: "Übertroffen", color: C.mint, soft: C.mintSoft, icon: Trophy },
   erreicht: { label: "Erreicht", color: C.gold, soft: C.goldSoft, icon: Check },
@@ -181,16 +272,21 @@ function buildExport(session) {
   lines.push("");
   session.entries.forEach((e) => {
     if (e.type === "duration") {
-      lines.push(`${e.name} — ${e.actual.done ? "erledigt" : "ausgelassen"} (${e.actual.minutes} min, Soll ${e.target.minutes} min)`);
+      const el = e.actual.seconds != null ? e.actual.seconds : (e.actual.minutes || 0) * 60;
+      const diff = el - e.target.minutes * 60;
+      const status = e.actual.done ? "GESCHAFFT" : diff < 0 ? "VERFEHLT (zu kurz)" : "VERFEHLT (zu lang)";
+      lines.push(`${e.name} — ${status} (${fmtDur(el)}, Soll ${e.target.minutes} min${diff !== 0 ? `, ${diff > 0 ? "+" : "−"}${fmtDur(diff)}` : ""})`);
     } else if (e.type === "hold") {
-      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}`);
+      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}${e.score != null ? ` (Reiz ${e.score}%)` : ""}`);
       lines.push(`  Soll: ${e.target.sets}× ${e.target.seconds}s`);
-      lines.push(`  Ist:  ${e.actual.map((s) => `${s.seconds}s`).join(", ")}`);
+      lines.push(`  Ist:  ${e.actual.map((s) => `${s.seconds}s${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
     } else {
-      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}`);
+      lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}${e.score != null ? ` (Reiz ${e.score}%)` : ""}`);
       lines.push(`  Soll: ${e.target.sets}×${e.target.repsMin}–${e.target.repsMax} @ ${e.target.weight} kg`);
-      lines.push(`  Ist:  ${e.actual.map((s) => `${s.reps}@${s.weight}`).join(", ")}`);
+      lines.push(`  Ist:  ${e.actual.map((s) => `${s.reps}@${s.weight}${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
     }
+    const notes = (e.actual.length ? e.actual : []).map((s, i) => s.note ? `    Satz ${i + 1}: ${s.note}` : null).filter(Boolean);
+    if (notes.length) lines.push(...notes);
   });
   lines.push("");
   lines.push("— Laurins Trainings-App → an Jarvis zum Tracken in Notion —");
@@ -203,7 +299,7 @@ function parsePlan(raw) {
   try { obj = JSON.parse(raw); } catch { return { error: "Kein gültiges JSON." }; }
   if (!obj || typeof obj.name !== "string" || !Array.isArray(obj.days) || obj.days.length === 0)
     return { error: "Plan braucht ein 'name'-Feld und mindestens eine Einheit in 'days'." };
-  const plan = { id: uid("p_"), name: obj.name.trim() || "Importierter Plan", days: [] };
+  const plan = { id: uid("p_"), name: obj.name.trim() || "Importierter Plan", restCompound: Number(obj.restCompound) || 90, restIsolation: Number(obj.restIsolation) || 60, exRest: Number(obj.exRest) || 120, days: [] };
   for (const d of obj.days) {
     if (!d || !Array.isArray(d.exercises)) return { error: "Jede Einheit braucht ein 'exercises'-Array." };
     const lbl = (typeof d.name === "string" ? d.name : "").replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
@@ -212,8 +308,8 @@ function parsePlan(raw) {
       const type = ["strength", "duration", "hold"].includes(e.type) ? e.type : "strength";
       const base = { id: uid("e_"), type, name: (e.name || "Übung").trim(), desc: e.desc || "", hint: e.hint || "" };
       if (type === "duration") day.exercises.push({ ...base, minutes: Number(e.minutes) || 10 });
-      else if (type === "hold") day.exercises.push({ ...base, sets: Number(e.sets) || 3, seconds: Number(e.seconds) || 30, rest: Number(e.rest) || 60 });
-      else day.exercises.push({ ...base, optional: !!e.optional, sets: Number(e.sets) || 3, repsMin: Number(e.repsMin) || 8, repsMax: Number(e.repsMax) || 12, weight: Number(e.weight) || 0, rest: Number(e.rest) || 90 });
+      else if (type === "hold") day.exercises.push({ ...base, category: e.category === "compound" ? "compound" : "isolation", sets: Number(e.sets) || 3, seconds: Number(e.seconds) || 30 });
+      else day.exercises.push({ ...base, category: e.category === "isolation" ? "isolation" : "compound", optional: !!e.optional, sets: Number(e.sets) || 3, repsMin: Number(e.repsMin) || 8, repsMax: Number(e.repsMax) || 12, weight: Number(e.weight) || 0 });
     }
     plan.days.push(day);
   }
@@ -308,7 +404,7 @@ function App() {
   const [showSplash, setShowSplash] = useState(true);
   const [plans, setPlans] = useState([SEED_PLAN]);
   const [logs, setLogs] = useState([]);
-  const [view, setView] = useState("library"); // library | editor | import | home | workout | result | rest | summary
+  const [view, setView] = useState("library");
   const [resumable, setResumable] = useState(null);
 
   const [activePlanId, setActivePlanId] = useState(null);
@@ -316,21 +412,23 @@ function App() {
   const [editorOpenDay, setEditorOpenDay] = useState(null);
 
   const [dayId, setDayId] = useState(null);
-  const [idx, setIdx] = useState(0);
+  const [exIdx, setExIdx] = useState(0);
+  const [setIdx, setSetIdx] = useState(0);
+  const [exDraft, setExDraft] = useState({ sets: [] });
+  const [curSet, setCurSet] = useState(null);
   const [entries, setEntries] = useState([]);
-  const [draft, setDraft] = useState(null);
-  const [editing, setEditing] = useState(false);
-  const [lastResult, setLastResult] = useState(null);
+  const [lastEntry, setLastEntry] = useState(null);
+  const [pending, setPending] = useState(false);
 
   useEffect(() => {
     (async () => {
-      let p = await sGet("trainster:plans:v1");
-      if (!p) { const legacy = await sGet("trainster:plan:v1"); p = legacy ? [legacy] : [SEED_PLAN]; }
+      let p = await sGet("plans:v1");
+      if (!p) { const legacy = await sGet("plan:v1"); p = legacy ? [legacy] : [SEED_PLAN]; }
       p = p.map(migratePlan);
-      await sSet("trainster:plans:v1", p);
+      await sSet("plans:v1", p);
       setPlans(p);
-      const l = await sGet("trainster:logs:v1"); if (l) setLogs(l);
-      const active = await sGet("trainster:active:v1");
+      const l = await sGet("logs:v1"); if (l) setLogs(l);
+      const active = await sGet("active:v1");
       if (active) { const pl = p.find((x) => x.id === active.planId); const d = pl?.days.find((x) => x.id === active.dayId); if (d && active.entries.length < d.exercises.length) setResumable(active); }
       setReady(true);
     })();
@@ -342,13 +440,13 @@ function App() {
     return () => clearTimeout(t);
   }, [ready]);
 
-  const savePlans = (next) => { setPlans(next); sSet("trainster:plans:v1", next); };
+  const savePlans = (next) => { setPlans(next); sSet("plans:v1", next); };
   const activePlan = plans.find((p) => p.id === activePlanId);
   const day = activePlan?.days.find((d) => d.id === dayId);
   const dayIndex = activePlan ? activePlan.days.findIndex((d) => d.id === dayId) : -1;
   const dayTitle = day ? unitTitle(dayIndex, day.label) : "";
   const exercises = day ? day.exercises : [];
-  const exercise = exercises[idx];
+  const exercise = exercises[exIdx];
 
   function updateTarget(patch) {
     const next = plans.map((p) => p.id !== activePlanId ? p : {
@@ -357,57 +455,90 @@ function App() {
     savePlans(next);
   }
 
-  function seedDraftFor(ex) {
-    if (!ex) return;
-    if (ex.type === "strength") setDraft({ sets: Array.from({ length: ex.sets }, () => ({ reps: ex.repsMin, weight: ex.weight })) });
-    else if (ex.type === "hold") setDraft({ sets: Array.from({ length: ex.sets }, () => ({ seconds: ex.seconds })) });
-    else setDraft({ done: true, minutes: ex.minutes });
+  function lastActualFor(exId) {
+    for (const s of logs) { const e = s.entries.find((x) => x.exerciseId === exId); if (e && Array.isArray(e.actual) && e.actual.length) return e; }
+    return null;
+  }
+  function initCur(ex, i) {
+    if (ex.type === "hold") return { seconds: ex.seconds, effort: "fordernd", note: "" };
+    const last = lastActualFor(ex.id);
+    const la = last && last.actual[i];
+    return { reps: (la && la.reps) || ex.repsMin, weight: (la && la.weight != null) ? la.weight : ex.weight, effort: "fordernd", note: "" };
   }
 
   function openPlan(id) { setActivePlanId(id); setView("home"); }
-  function goLibrary() { setActivePlanId(null); setDayId(null); setEntries([]); setIdx(0); setLastResult(null); setView("library"); }
+  function resetWorkout() { setEntries([]); setExIdx(0); setSetIdx(0); setExDraft({ sets: [] }); setCurSet(null); setLastEntry(null); setPending(false); }
+  function goLibrary() { setActivePlanId(null); setDayId(null); resetWorkout(); setView("library"); }
+  function exitToPlanHome() { resetWorkout(); setView("home"); }
 
   function startDay(id, resume) {
     setDayId(id);
-    const pl = plans.find((p) => p.id === activePlanId);
-    const exs = pl.days.find((d) => d.id === id).exercises;
-    if (resume) { setEntries(resume.entries); setIdx(resume.entries.length); setResumable(null); seedDraftFor(exs[resume.entries.length]); }
-    else { setEntries([]); setIdx(0); sDel("trainster:active:v1"); seedDraftFor(exs[0]); }
-    setEditing(false); setView("workout");
+    if (resume) { setEntries(resume.entries); setExIdx(resume.entries.length); setResumable(null); }
+    else { setEntries([]); setExIdx(0); sDel("active:v1"); }
+    setView("ex-overview");
   }
 
-  function finishExercise() {
+  function beginExercise() {
+    if (exercise.type === "duration") setExDraft({ elapsedSec: 0 });
+    else { setExDraft({ sets: [] }); setSetIdx(0); setCurSet(initCur(exercise, 0)); }
+    setView("ex-run");
+  }
+
+  function requestCommit(durationElapsedSec) {
+    if (exercise.type === "duration") setExDraft({ elapsedSec: durationElapsedSec || 0 });
+    setPending(true);
+  }
+  function confirmCommit() {
+    setPending(false);
+    if (exercise.type === "duration") { finalizeExercise(null, exDraft); return; }
+    const sets = [...exDraft.sets, curSet];
+    if (setIdx + 1 >= exercise.sets) finalizeExercise(sets, null);
+    else { setExDraft({ sets }); setView("set-rest"); }
+  }
+  function nextSet() { const n = setIdx + 1; setSetIdx(n); setCurSet(initCur(exercise, n)); setView("ex-run"); }
+  function backFromSetRest() { setExDraft((prev) => ({ sets: prev.sets.slice(0, -1) })); setView("ex-run"); }
+  function backFromSet() {
+    if (exercise.type === "duration" || setIdx === 0) { setView("ex-overview"); return; }
+    const n = setIdx - 1;
+    const prev = exDraft.sets[n];
+    setExDraft((d) => ({ sets: d.sets.slice(0, -1) }));
+    setSetIdx(n);
+    setCurSet(prev);
+  }
+
+  function finalizeExercise(sets, durationDraft) {
     let entry;
-    if (exercise.type === "strength") {
-      const evaluation = evalStrength(exercise, draft.sets);
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "strength", target: { sets: exercise.sets, repsMin: exercise.repsMin, repsMax: exercise.repsMax, weight: exercise.weight }, actual: draft.sets.map((s) => ({ reps: Number(s.reps) || 0, weight: Number(s.weight) || 0 })), evaluation };
+    if (exercise.type === "duration") {
+      const r = durationResult(exercise.minutes, durationDraft.elapsedSec);
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "duration", target: { minutes: exercise.minutes }, actual: { seconds: r.elapsedSec, done: r.ok }, evaluation: r.ok ? "erledigt" : "verfehlt", score: null };
     } else if (exercise.type === "hold") {
-      const evaluation = evalHold(exercise, draft.sets);
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "hold", target: { sets: exercise.sets, seconds: exercise.seconds }, actual: draft.sets.map((s) => ({ seconds: Number(s.seconds) || 0 })), evaluation };
+      const score = scoreHold(exercise, sets);
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "hold", target: { sets: exercise.sets, seconds: exercise.seconds }, actual: sets.map((s) => ({ seconds: Number(s.seconds) || 0, effort: s.effort, note: s.note || "" })), evaluation: evalFromScore(score), score };
     } else {
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "duration", target: { minutes: exercise.minutes }, actual: { done: draft.done, minutes: Number(draft.minutes) || 0 }, evaluation: draft.done ? "erledigt" : "verfehlt" };
+      const score = scoreStrength(exercise, sets);
+      entry = { exerciseId: exercise.id, name: exercise.name, type: "strength", target: { sets: exercise.sets, repsMin: exercise.repsMin, repsMax: exercise.repsMax, weight: exercise.weight }, actual: sets.map((s) => ({ reps: Number(s.reps) || 0, weight: Number(s.weight) || 0, effort: s.effort, note: s.note || "" })), evaluation: evalFromScore(score), score };
     }
     const newEntries = [...entries, entry];
-    setEntries(newEntries); setLastResult(entry);
-    sSet("trainster:active:v1", { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries: newEntries });
-    setView("result");
+    setEntries(newEntries); setLastEntry(entry);
+    sSet("active:v1", { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries: newEntries });
+    setView("ex-result");
   }
-  function afterResult() { if (idx + 1 >= exercises.length) finishSession(); else setView("rest"); }
-  function gotoNext() { const n = idx + 1; setIdx(n); seedDraftFor(exercises[n]); setEditing(false); setView("workout"); }
+
+  function afterResult() { if (exIdx + 1 >= exercises.length) finishSession(); else setView("ex-rest"); }
+  function resultBack() { setEntries((prev) => prev.slice(0, -1)); setView("ex-overview"); }
+  function nextExercise() { setExIdx(exIdx + 1); setView("ex-overview"); }
   function finishSession() {
     const session = { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries };
     const newLogs = [session, ...logs].slice(0, 80);
-    setLogs(newLogs); sSet("trainster:logs:v1", newLogs); sDel("trainster:active:v1"); setView("summary");
+    setLogs(newLogs); sSet("logs:v1", newLogs); sDel("active:v1"); setView("summary");
   }
-  function exitToPlanHome() { setEntries([]); setIdx(0); setLastResult(null); setView("home"); }
 
-  /* Plan-CRUD */
-  function newPlan() { setEditorPlan({ id: uid("p_"), name: "", days: [] }); setEditorOpenDay(null); setView("editor"); }
+  function newPlan() { setEditorPlan({ id: uid("p_"), name: "", restCompound: 90, restIsolation: 60, exRest: 120, days: [] }); setEditorOpenDay(null); setView("editor"); }
   function editPlan(id, openDayId) { setEditorPlan(JSON.parse(JSON.stringify(plans.find((p) => p.id === id)))); setEditorOpenDay(openDayId || null); setView("editor"); }
-  function duplicateUnit(dayId) {
+  function duplicateUnit(did) {
     const next = plans.map((p) => {
       if (p.id !== activePlanId) return p;
-      const i = p.days.findIndex((d) => d.id === dayId);
+      const i = p.days.findIndex((d) => d.id === did);
       if (i < 0) return p;
       const src = p.days[i];
       const copy = { ...src, id: uid("d_"), exercises: src.exercises.map((e) => ({ ...e, id: uid("e_") })) };
@@ -415,10 +546,7 @@ function App() {
     });
     savePlans(next);
   }
-  function deleteUnit(dayId) {
-    const next = plans.map((p) => p.id !== activePlanId ? p : { ...p, days: p.days.filter((d) => d.id !== dayId) });
-    savePlans(next);
-  }
+  function deleteUnit(did) { savePlans(plans.map((p) => p.id !== activePlanId ? p : { ...p, days: p.days.filter((d) => d.id !== did) })); }
   function savePlanFromEditor(p) {
     const exists = plans.some((x) => x.id === p.id);
     savePlans(exists ? plans.map((x) => x.id === p.id ? p : x) : [...plans, p]);
@@ -434,8 +562,10 @@ function App() {
   }
   function importPlan(plan) { savePlans([...plans, plan]); setView("library"); }
 
-  const subtitle = ["home", "workout", "result", "rest", "summary"].includes(view) && activePlan
-    ? activePlan.name : view === "editor" ? "Plan-Editor" : view === "import" ? "Plan importieren" : `Bibliothek · ${plans.length} ${plans.length === 1 ? "Plan" : "Pläne"}`;
+  const inWorkout = ["ex-overview", "ex-run", "set-rest", "ex-result", "ex-rest", "summary"].includes(view);
+  const subtitle = (view === "home" || inWorkout) && activePlan ? activePlan.name
+    : view === "editor" ? "Plan-Editor" : view === "import" ? "Plan importieren"
+    : `Bibliothek · ${plans.length} ${plans.length === 1 ? "Plan" : "Pläne"}`;
 
   if (showSplash || !ready) return <Splash />;
 
@@ -454,7 +584,6 @@ function App() {
       `}</style>
 
       <div style={{ maxWidth: 460, margin: "0 auto", padding: "22px 18px 40px" }}>
-        {/* HEADER */}
         <div className="flex items-center justify-between" style={{ marginBottom: 22 }}>
           <div className="flex items-center gap-2">
             <div style={{ width: 30, height: 30, borderRadius: 8, background: C.gold, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -473,8 +602,8 @@ function App() {
               <Library size={14} /> Bibliothek
             </button>
           )}
-          {["workout", "result", "rest"].includes(view) && (
-            <button onClick={exitToPlanHome} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Beenden</button>
+          {inWorkout && view !== "summary" && (
+            <button onClick={exitToPlanHome} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Abbrechen</button>
           )}
           {(view === "editor" || view === "import") && (
             <button onClick={() => { setEditorPlan(null); setView("library"); }} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Abbrechen</button>
@@ -484,12 +613,27 @@ function App() {
         {view === "library" && <LibraryView plans={plans} logs={logs} onOpen={openPlan} onNew={newPlan} onImport={() => setView("import")} onEdit={editPlan} onDuplicate={duplicatePlan} onDelete={deletePlan} />}
         {view === "editor" && editorPlan && <PlanEditor initial={editorPlan} openId={editorOpenDay} onSave={savePlanFromEditor} />}
         {view === "import" && <ImportView onImport={importPlan} />}
-        {view === "home" && activePlan && <Home plan={activePlan} logs={logs} resumable={resumable && resumable.planId === activePlan.id ? resumable : null} onStart={startDay} onEditDay={(dayId) => editPlan(activePlan.id, dayId)} onDuplicateDay={duplicateUnit} onDeleteDay={deleteUnit} />}
-        {view === "workout" && exercise && <Workout key={exercise.id} ex={exercise} idx={idx} total={exercises.length} draft={draft} setDraft={setDraft} editing={editing} setEditing={setEditing} updateTarget={updateTarget} onFinish={finishExercise} history={logs} />}
-        {view === "result" && lastResult && <Result entry={lastResult} idx={idx} total={exercises.length} onContinue={afterResult} />}
-        {view === "rest" && <Rest seconds={exercise?.rest || 90} nextEx={exercises[idx + 1]} onDone={gotoNext} />}
+        {view === "home" && activePlan && <Home plan={activePlan} logs={logs} resumable={resumable && resumable.planId === activePlan.id ? resumable : null} onStart={startDay} onEditDay={(d) => editPlan(activePlan.id, d)} onDuplicateDay={duplicateUnit} onDeleteDay={deleteUnit} />}
+        {view === "ex-overview" && exercise && <ExOverview ex={exercise} idx={exIdx} total={exercises.length} updateTarget={updateTarget} onBack={() => setView("home")} onBegin={beginExercise} />}
+        {view === "ex-run" && exercise && <ExRun key={`${exercise.id}-${setIdx}`} ex={exercise} setIdx={setIdx} curSet={curSet} setCurSet={setCurSet} lastEntry={lastActualFor(exercise.id)} onBack={backFromSet} onCommit={requestCommit} />}
+        {view === "set-rest" && exercise && <SetRest seconds={setRestFor(activePlan, exercise)} nextLabel={`Satz ${setIdx + 2} / ${exercise.sets}`} onBack={backFromSetRest} onNext={nextSet} />}
+        {view === "ex-result" && lastEntry && <ExResult entry={lastEntry} onBack={resultBack} onNext={afterResult} isLast={exIdx + 1 >= exercises.length} />}
+        {view === "ex-rest" && <ExRest seconds={activePlan.exRest != null ? activePlan.exRest : 120} nextEx={exercises[exIdx + 1]} onBack={() => setView("ex-result")} onNext={nextExercise} />}
         {view === "summary" && <Summary plan={activePlan} dayId={dayId} entries={entries} logs={logs} onReset={exitToPlanHome} onLibrary={goLibrary} />}
       </div>
+
+      {pending && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}>
+          <div className="pop" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: "24px 22px", width: "100%", maxWidth: 300, textAlign: "center" }}>
+            <div style={{ ...display, fontSize: 24, marginBottom: 6 }}>Sicher?</div>
+            <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 20 }}>Eingaben werden übernommen und dokumentiert.</div>
+            <div className="flex gap-3">
+              <button onClick={() => setPending(false)} style={{ flex: 1, ...body, fontSize: 15, color: C.text, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer" }}>Nein</button>
+              <button onClick={confirmCommit} style={{ flex: 1, ...display, fontSize: 16, color: "#0e0f12", background: C.gold, border: "none", borderRadius: 12, padding: "13px", cursor: "pointer" }}>Ja</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -593,7 +737,23 @@ function PlanEditor({ initial, openId, onSave }) {
   return (
     <div className="rise">
       <label style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Plan-Name</label>
-      <input value={plan.name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Push/Pull/Beine" style={{ ...inputStyle, marginTop: 6, marginBottom: 18, ...display, fontSize: 20 }} />
+      <input value={plan.name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Push/Pull/Beine" style={{ ...inputStyle, marginTop: 6, marginBottom: 14, ...display, fontSize: 20 }} />
+
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "12px 16px", marginBottom: 18 }}>
+        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Pausen (Standard)</div>
+        <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
+          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Satzpause · Compound</div><div style={{ ...body, fontSize: 11, color: C.muted }}>Verbundübungen</div></div>
+          <Stepper value={plan.restCompound != null ? plan.restCompound : 90} step={5} min={0} onChange={(v) => setPlan({ ...plan, restCompound: v })} suffix="s" />
+        </div>
+        <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
+          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Satzpause · Isolation</div><div style={{ ...body, fontSize: 11, color: C.muted }}>Isolationsübungen</div></div>
+          <Stepper value={plan.restIsolation != null ? plan.restIsolation : 60} step={5} min={0} onChange={(v) => setPlan({ ...plan, restIsolation: v })} suffix="s" />
+        </div>
+        <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
+          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Übungspause</div><div style={{ ...body, fontSize: 11, color: C.muted }}>zwischen den Übungen</div></div>
+          <Stepper value={plan.exRest != null ? plan.exRest : 120} step={10} min={0} onChange={(v) => setPlan({ ...plan, exRest: v })} suffix="s" />
+        </div>
+      </div>
 
       <div className="flex flex-col gap-3">
         {plan.days.map((d, i) => (
@@ -655,14 +815,14 @@ function PlanEditor({ initial, openId, onSave }) {
 
 function ExerciseForm({ onAdd, onClose }) {
   const [type, setType] = useState("strength");
-  const [f, setF] = useState({ name: "", desc: "", hint: "", sets: 3, repsMin: 8, repsMax: 12, weight: 0, rest: 90, minutes: 10, seconds: 30, optional: false });
+  const [f, setF] = useState({ name: "", desc: "", hint: "", category: "compound", sets: 3, repsMin: 8, repsMax: 12, weight: 0, minutes: 10, seconds: 30, optional: false });
   const set = (k, v) => setF({ ...f, [k]: v });
   const types = [["strength", "Kraft"], ["duration", "Cardio"], ["hold", "Halten"]];
   function realSubmit(addanother) {
     if (!f.name.trim()) return;
     let ex = { type, name: f.name.trim(), desc: f.desc.trim(), hint: f.hint.trim() };
-    if (type === "strength") ex = { ...ex, optional: f.optional, sets: f.sets, repsMin: f.repsMin, repsMax: f.repsMax, weight: f.weight, rest: f.rest };
-    else if (type === "hold") ex = { ...ex, sets: f.sets, seconds: f.seconds, rest: f.rest };
+    if (type === "strength") ex = { ...ex, category: f.category, optional: f.optional, sets: f.sets, repsMin: f.repsMin, repsMax: f.repsMax, weight: f.weight };
+    else if (type === "hold") ex = { ...ex, category: "isolation", sets: f.sets, seconds: f.seconds };
     else ex = { ...ex, minutes: f.minutes };
     onAdd(ex);
     setF({ ...f, name: "", desc: "", hint: "" });
@@ -687,14 +847,19 @@ function ExerciseForm({ onAdd, onClose }) {
           <FieldRow label="Wdh. min"><Stepper value={f.repsMin} min={1} onChange={(v) => set("repsMin", v)} /></FieldRow>
           <FieldRow label="Wdh. max"><Stepper value={f.repsMax} min={1} onChange={(v) => set("repsMax", v)} /></FieldRow>
           <FieldRow label="Gewicht"><Stepper value={f.weight} step={2.5} onChange={(v) => set("weight", v)} suffix="kg" /></FieldRow>
-          <FieldRow label="Pause"><Stepper value={f.rest} step={15} onChange={(v) => set("rest", v)} suffix="s" /></FieldRow>
+          <FieldRow label="Kategorie">
+            <div className="flex gap-1">
+              {[["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => (
+                <button key={c} onClick={() => set("category", c)} style={{ ...body, fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 7, cursor: "pointer", border: `1px solid ${f.category === c ? C.gold : C.line}`, background: f.category === c ? C.goldSoft : "transparent", color: f.category === c ? C.gold : C.muted }}>{l}</button>
+              ))}
+            </div>
+          </FieldRow>
         </>
       )}
       {type === "hold" && (
         <>
           <FieldRow label="Sätze"><Stepper value={f.sets} min={1} onChange={(v) => set("sets", v)} /></FieldRow>
           <FieldRow label="Sekunden"><Stepper value={f.seconds} step={5} onChange={(v) => set("seconds", v)} suffix="s" /></FieldRow>
-          <FieldRow label="Pause"><Stepper value={f.rest} step={15} onChange={(v) => set("rest", v)} suffix="s" /></FieldRow>
         </>
       )}
       {type === "duration" && <FieldRow label="Dauer"><Stepper value={f.minutes} step={5} onChange={(v) => set("minutes", v)} suffix="min" /></FieldRow>}
@@ -836,145 +1001,272 @@ function Home({ plan, logs, resumable, onStart, onEditDay, onDuplicateDay, onDel
 }
 
 /* ============================================================
-   WORKOUT
+   WORKOUT-FLOW (Satz für Satz)
    ============================================================ */
-function Workout({ ex, idx, total, draft, setDraft, editing, setEditing, updateTarget, onFinish, history }) {
-  const progress = Math.round((idx / total) * 100);
-  let lastTime = null;
-  for (const s of history) { const e = s.entries.find((x) => x.exerciseId === ex.id); if (e) { lastTime = e; break; } }
+function NavBar({ onBack, label, onForward, color = C.gold }) {
+  return (
+    <div className="flex items-center gap-3" style={{ marginTop: 22 }}>
+      <button onClick={onBack} aria-label="Zurück" style={{ width: 54, height: 54, borderRadius: 14, border: `1px solid ${C.line}`, background: C.surface2, color: C.muted, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
+        <ChevronLeft size={22} />
+      </button>
+      <button onClick={onForward} className="flex items-center justify-center gap-2" style={{ flex: 1, background: color, color: "#0e0f12", border: "none", borderRadius: 14, padding: "17px", cursor: "pointer", ...display, fontSize: 17, letterSpacing: "0.02em" }}>
+        {label} <ArrowRight size={18} />
+      </button>
+    </div>
+  );
+}
+
+function Timer({ mode, seconds = 0, label, onTick }) {
+  const [t, setT] = useState(mode === "down" ? seconds : 0);
+  useEffect(() => {
+    const i = setInterval(() => setT((x) => (mode === "down" ? x - 1 : x + 1)), 1000);
+    return () => clearInterval(i);
+  }, []);
+  useEffect(() => { if (onTick) onTick(mode === "down" ? seconds - t : t); }, [t]);
+  const over = mode === "down" && t < 0;
+  const shown = Math.abs(t);
+  const mm = Math.floor(shown / 60);
+  const ss = String(shown % 60).padStart(2, "0");
+  const col = over ? C.clay : mode === "down" ? C.gold : C.text;
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ ...display, fontSize: 64, lineHeight: 1, color: col, transition: "color .3s" }}>{over ? "+" : ""}{mm}:{ss}</div>
+      {label && <div style={{ ...body, fontSize: 12, color: C.muted, marginTop: 6 }}>{over ? "über Soll" : label}</div>}
+    </div>
+  );
+}
+
+function EditRow({ label, children }) {
+  return <div className="flex items-center justify-between" style={{ marginTop: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>{label}</span>{children}</div>;
+}
+
+function ExOverview({ ex, idx, total, updateTarget, onBack, onBegin }) {
+  const [edit, setEdit] = useState(false);
+  const [draft, setDraft] = useState(null);
+  const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
+  function openEdit() {
+    if (ex.type === "duration") setDraft({ minutes: ex.minutes });
+    else if (ex.type === "strength") setDraft({ category: ex.category || "compound", sets: ex.sets, repsMin: ex.repsMin, repsMax: ex.repsMax, weight: ex.weight });
+    else setDraft({ sets: ex.sets, seconds: ex.seconds });
+    setEdit(true);
+  }
+  function save() { updateTarget(draft); setEdit(false); }
   return (
     <div className="rise">
-      <div className="flex items-center justify-between" style={{ marginBottom: 8 }}>
-        <span style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>Übung {idx + 1} / {total}</span>
-        {ex.optional && <Pill>optional</Pill>}
+      <div style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
+        Übung {idx + 1} / {total}{ex.optional ? " · optional" : ""}
       </div>
-      <div style={{ height: 4, background: C.surface2, borderRadius: 999, marginBottom: 20, overflow: "hidden" }}>
-        <div style={{ width: `${progress}%`, height: "100%", background: C.gold, transition: "width .4s ease" }} />
-      </div>
-      <h1 style={{ ...display, fontSize: 34, lineHeight: 1.02, margin: "0 0 10px" }}>{ex.name}</h1>
-      {ex.desc && <p style={{ ...body, fontSize: 14, color: C.muted, margin: "0 0 6px" }}>{ex.desc}</p>}
+      <h1 style={{ ...display, fontSize: 38, lineHeight: 1.02, margin: "0 0 12px" }}>{ex.name}</h1>
+      {ex.desc && <p style={{ ...body, fontSize: 14, color: C.muted, margin: "0 0 8px" }}>{ex.desc}</p>}
       {ex.hint && (
         <div className="flex items-start gap-2" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", marginBottom: 18 }}>
           <Flame size={15} color={C.gold} style={{ marginTop: 1, flexShrink: 0 }} /><span style={{ ...body, fontSize: 13, color: C.text }}>{ex.hint}</span>
         </div>
       )}
-
-      {ex.type === "duration" && (
-        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18 }}>
-          <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.minutes} min</span>
-            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
-          </div>
-          {editing && <div className="flex items-center justify-between" style={{ marginBottom: 14 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Soll-Dauer</span><Stepper value={ex.minutes} step={5} onChange={(v) => updateTarget({ minutes: v })} suffix="min" /></div>}
-          <div className="flex items-center justify-between" style={{ marginBottom: 16 }}><span style={{ ...body, fontSize: 14 }}>Tatsächlich</span><Stepper value={draft.minutes} step={5} onChange={(v) => setDraft({ ...draft, minutes: v })} suffix="min" /></div>
-          <FinishBtn label="Erledigt — weiter" onClick={() => { setDraft({ ...draft, done: true }); onFinish(); }} />
-        </div>
-      )}
-
-      {ex.type === "strength" && (
-        <div>
-          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.sets}×{ex.repsMin}–{ex.repsMax} @ {ex.weight} kg</span>
-            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
-          </div>
-          {editing && (
-            <div style={{ background: C.surface2, border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Sätze</span><Stepper value={ex.sets} min={1} onChange={(v) => { updateTarget({ sets: v }); setDraft({ sets: Array.from({ length: v }, (_, i) => draft.sets[i] || { reps: ex.repsMin, weight: ex.weight }) }); }} /></div>
-              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Wdh. min</span><Stepper value={ex.repsMin} min={1} onChange={(v) => updateTarget({ repsMin: v })} /></div>
-              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Wdh. max</span><Stepper value={ex.repsMax} min={1} onChange={(v) => updateTarget({ repsMax: v })} /></div>
-              <div className="flex items-center justify-between"><span style={{ ...body, fontSize: 13, color: C.muted }}>Gewicht</span><Stepper value={ex.weight} step={2.5} onChange={(v) => updateTarget({ weight: v })} suffix="kg" /></div>
-            </div>
-          )}
-          {lastTime && lastTime.type === "strength" && <div style={{ ...body, fontSize: 12, color: C.muted, marginBottom: 10 }}>Letztes Mal: {lastTime.actual.map((s) => `${s.reps}@${s.weight}`).join("  ·  ")}</div>}
-          <div className="flex flex-col gap-2" style={{ marginBottom: 16 }}>
-            {draft.sets.map((s, i) => (
-              <div key={i} className="flex items-center gap-3" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 12px" }}>
-                <div style={{ ...display, fontSize: 15, color: C.muted, width: 24 }}>{i + 1}</div>
-                <div className="flex-1 flex items-center justify-between">
-                  <div style={{ textAlign: "center" }}><div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 2 }}>WDH</div><Stepper value={s.reps} onChange={(v) => { const n = [...draft.sets]; n[i] = { ...n[i], reps: v }; setDraft({ sets: n }); }} /></div>
-                  <div style={{ width: 1, height: 34, background: C.line }} />
-                  <div style={{ textAlign: "center" }}><div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 2 }}>KG</div><Stepper value={s.weight} step={2.5} onChange={(v) => { const n = [...draft.sets]; n[i] = { ...n[i], weight: v }; setDraft({ sets: n }); }} /></div>
-                </div>
-              </div>
-            ))}
-          </div>
-          <FinishBtn label="Sätze bestätigen" onClick={onFinish} />
-        </div>
-      )}
-
-      {ex.type === "hold" && (
-        <div>
-          <div className="flex items-center justify-between" style={{ marginBottom: 12 }}>
-            <span style={{ ...body, fontSize: 13, color: C.muted }}>Soll: {ex.sets}× {ex.seconds}s</span>
-            <button onClick={() => setEditing(!editing)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer" }}><Pencil size={13} /> Soll anpassen</button>
-          </div>
-          {editing && (
-            <div style={{ background: C.surface2, border: `1px solid ${C.line}`, borderRadius: 12, padding: 14, marginBottom: 14 }}>
-              <div className="flex items-center justify-between" style={{ marginBottom: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>Sätze</span><Stepper value={ex.sets} min={1} onChange={(v) => { updateTarget({ sets: v }); setDraft({ sets: Array.from({ length: v }, (_, i) => draft.sets[i] || { seconds: ex.seconds }) }); }} /></div>
-              <div className="flex items-center justify-between"><span style={{ ...body, fontSize: 13, color: C.muted }}>Sekunden</span><Stepper value={ex.seconds} step={5} onChange={(v) => updateTarget({ seconds: v })} suffix="s" /></div>
-            </div>
-          )}
-          <div className="flex flex-col gap-2" style={{ marginBottom: 16 }}>
-            {draft.sets.map((s, i) => (
-              <div key={i} className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "10px 14px" }}>
-                <div style={{ ...display, fontSize: 15, color: C.muted }}>Satz {i + 1}</div>
-                <Stepper value={s.seconds} step={5} onChange={(v) => { const n = [...draft.sets]; n[i] = { seconds: v }; setDraft({ sets: n }); }} suffix="s" />
-              </div>
-            ))}
-          </div>
-          <FinishBtn label="Bestätigen" onClick={onFinish} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ============================================================
-   RESULT
-   ============================================================ */
-function Result({ entry, idx, total, onContinue }) {
-  const meta = EVAL_META[entry.evaluation]; const Icon = meta.icon; const isLast = idx + 1 >= total;
-  return (
-    <div className="rise" style={{ textAlign: "center", paddingTop: 8 }}>
-      <div className="pop" style={{ width: 88, height: 88, borderRadius: "50%", background: meta.soft, border: `2px solid ${meta.color}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "10px auto 18px" }}><Icon size={40} color={meta.color} /></div>
-      <div style={{ ...display, fontSize: 30, color: meta.color, marginBottom: 4 }}>{meta.label}</div>
-      <div style={{ ...body, fontSize: 15, color: C.text, marginBottom: 22 }}>{entry.name}</div>
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 16, textAlign: "left", marginBottom: 14 }}>
-        {entry.type === "strength" && (<><Row k="Soll" v={`${entry.target.sets}×${entry.target.repsMin}–${entry.target.repsMax} @ ${entry.target.weight} kg`} /><Row k="Ist" v={entry.actual.map((s) => `${s.reps}@${s.weight}`).join("  ·  ")} accent /><Row k="Volumen" v={`${volumeOf(entry).toLocaleString("de-DE")} kg`} /></>)}
-        {entry.type === "hold" && (<><Row k="Soll" v={`${entry.target.sets}× ${entry.target.seconds}s`} /><Row k="Ist" v={entry.actual.map((s) => `${s.seconds}s`).join("  ·  ")} accent /></>)}
-        {entry.type === "duration" && (<><Row k="Soll" v={`${entry.target.minutes} min`} /><Row k="Ist" v={`${entry.actual.minutes} min`} accent /></>)}
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, textAlign: "center" }}>
+        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Soll</div>
+        {ex.type === "duration" && <div style={{ ...display, fontSize: 40 }}>{ex.minutes}<span style={{ fontSize: 18, color: C.muted }}> min</span></div>}
+        {ex.type === "strength" && <div style={{ ...display, fontSize: 32 }}>{ex.sets} × {ex.repsMin}–{ex.repsMax}<span style={{ fontSize: 17, color: C.muted }}> @ {ex.weight} kg</span></div>}
+        {ex.type === "hold" && <div style={{ ...display, fontSize: 38 }}>{ex.sets} × {ex.seconds}<span style={{ fontSize: 18, color: C.muted }}> s</span></div>}
+        <button onClick={openEdit} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer", margin: "12px auto 0" }}>
+          <Pencil size={13} /> Soll anpassen
+        </button>
       </div>
-      {entry.evaluation === "uebertroffen" && entry.type === "strength" && <div style={{ ...body, fontSize: 13, color: C.mint, marginBottom: 18 }}>↑ Oberes Wdh.-Ziel erreicht — nächstes Mal Gewicht erhöhen (doppelte Progression).</div>}
-      <FinishBtn label={isLast ? "Einheit abschließen" : "Weiter zur Pause"} onClick={onContinue} />
+      <NavBar onBack={onBack} label="Beginnen" onForward={onBegin} />
+
+      {edit && draft && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}>
+          <div className="pop" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: "22px 20px", width: "100%", maxWidth: 340 }}>
+            <div style={{ ...display, fontSize: 20, marginBottom: 2 }}>Soll anpassen</div>
+            <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 12 }}>{ex.name}</div>
+            {ex.type === "duration" && <EditRow label="Dauer"><Stepper value={draft.minutes} step={5} onChange={(v) => set({ minutes: v })} suffix="min" /></EditRow>}
+            {ex.type === "strength" && (<>
+              <EditRow label="Sätze"><Stepper value={draft.sets} min={1} onChange={(v) => set({ sets: v })} /></EditRow>
+              <EditRow label="Wdh. min"><Stepper value={draft.repsMin} min={1} onChange={(v) => set({ repsMin: v })} /></EditRow>
+              <EditRow label="Wdh. max"><Stepper value={draft.repsMax} min={1} onChange={(v) => set({ repsMax: v })} /></EditRow>
+              <EditRow label="Gewicht"><Stepper value={draft.weight} step={2.5} onChange={(v) => set({ weight: v })} suffix="kg" /></EditRow>
+              <EditRow label="Kategorie">
+                <div className="flex gap-1">
+                  {[["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => (
+                    <button key={c} onClick={() => set({ category: c })} style={{ ...body, fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 7, cursor: "pointer", border: `1px solid ${draft.category === c ? C.gold : C.line}`, background: draft.category === c ? C.goldSoft : "transparent", color: draft.category === c ? C.gold : C.muted }}>{l}</button>
+                  ))}
+                </div>
+              </EditRow>
+            </>)}
+            {ex.type === "hold" && (<>
+              <EditRow label="Sätze"><Stepper value={draft.sets} min={1} onChange={(v) => set({ sets: v })} /></EditRow>
+              <EditRow label="Sekunden"><Stepper value={draft.seconds} step={5} onChange={(v) => set({ seconds: v })} suffix="s" /></EditRow>
+            </>)}
+            <div className="flex gap-3" style={{ marginTop: 20 }}>
+              <button onClick={() => setEdit(false)} style={{ flex: 1, ...body, fontSize: 15, color: C.text, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer" }}>Abbrechen</button>
+              <button onClick={save} style={{ flex: 1, ...display, fontSize: 16, color: "#0e0f12", background: C.gold, border: "none", borderRadius: 12, padding: "13px", cursor: "pointer" }}>Speichern</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
-/* ============================================================
-   REST
-   ============================================================ */
-function Rest({ seconds, nextEx, onDone }) {
-  const [left, setLeft] = useState(seconds); const ref = useRef();
-  useEffect(() => { ref.current = setInterval(() => setLeft((l) => (l > 0 ? l - 1 : 0)), 1000); return () => clearInterval(ref.current); }, []);
-  const frac = left / seconds, R = 70, CIRC = 2 * Math.PI * R;
-  const mm = Math.floor(left / 60), ss = String(left % 60).padStart(2, "0");
+function NoteField({ value, onChange }) {
+  const [open, setOpen] = useState(!!value);
+  if (!open) return (
+    <button onClick={() => setOpen(true)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: "none", cursor: "pointer", marginBottom: 2 }}>
+      <Plus size={13} /> Notiz
+    </button>
+  );
+  return <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Notiz zum Satz" style={{ ...inputStyle, marginBottom: 4, fontSize: 13 }} />;
+}
+
+function ExRun({ ex, setIdx, curSet, setCurSet, lastEntry, onBack, onCommit }) {
+  const elapsedRef = useRef(0);
+  if (ex.type === "duration") {
+    return (
+      <div className="rise" style={{ textAlign: "center" }}>
+        <div style={{ ...display, fontSize: 26, marginBottom: 4 }}>{ex.name}</div>
+        <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 28 }}>Soll: {ex.minutes} min</div>
+        <Timer mode="down" seconds={ex.minutes * 60} label="läuft" onTick={(e) => { elapsedRef.current = e; }} />
+        <NavBar onBack={onBack} label="Beenden" onForward={() => onCommit(elapsedRef.current)} />
+      </div>
+    );
+  }
+  if (!curSet) return null;
+  const isLastSet = setIdx + 1 >= ex.sets;
+  const la = lastEntry && Array.isArray(lastEntry.actual) ? lastEntry.actual[setIdx] : null;
+  const upd = (patch) => setCurSet({ ...curSet, ...patch });
+  return (
+    <div className="rise">
+      <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
+        <span style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>{ex.name}</span>
+        <span style={{ ...display, fontSize: 15, color: C.gold }}>Satz {setIdx + 1} / {ex.sets}</span>
+      </div>
+      <div style={{ marginBottom: 16 }}><Timer mode="up" label="Satzdauer" /></div>
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 14, textAlign: "center" }}>
+        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Soll</div>
+        {ex.type === "hold"
+          ? <div style={{ ...display, fontSize: 30 }}>{ex.seconds} s</div>
+          : <div style={{ ...display, fontSize: 28 }}>{ex.repsMin}–{ex.repsMax} <span style={{ fontSize: 15, color: C.muted }}>Wdh @ {ex.weight} kg</span></div>}
+        {la && <div style={{ ...body, fontSize: 11, color: C.muted, marginTop: 4 }}>letztes Mal: {ex.type === "hold" ? `${la.seconds}s` : `${la.reps}@${la.weight}`}</div>}
+      </div>
+      <div className="flex items-center justify-around" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "12px", marginBottom: 14 }}>
+        {ex.type === "hold" ? (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>SEKUNDEN</div>
+            <Stepper value={curSet.seconds} step={5} onChange={(v) => upd({ seconds: v })} />
+          </div>
+        ) : (<>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>WDH</div>
+            <Stepper value={curSet.reps} onChange={(v) => upd({ reps: v })} />
+          </div>
+          <div style={{ width: 1, height: 40, background: C.line }} />
+          <div style={{ textAlign: "center" }}>
+            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>KG</div>
+            <Stepper value={curSet.weight} step={2.5} onChange={(v) => upd({ weight: v })} />
+          </div>
+        </>)}
+      </div>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Wie nah am Limit?</div>
+        <div className="flex gap-2">
+          {EFFORT_ORDER.map((k) => {
+            const e = EFFORT[k]; const on = curSet.effort === k;
+            return (
+              <button key={k} onClick={() => upd({ effort: k })} style={{ flex: 1, background: on ? e.color + "22" : "transparent", border: `1px solid ${on ? e.color : C.line}`, borderRadius: 12, padding: "10px 4px", cursor: "pointer", textAlign: "center" }}>
+                <div style={{ ...body, fontSize: 13, fontWeight: 600, color: on ? e.color : C.text }}>{e.label}</div>
+                <div style={{ ...body, fontSize: 10, color: C.muted, marginTop: 2 }}>{e.sub}</div>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <NoteField value={curSet.note} onChange={(v) => upd({ note: v })} />
+      <NavBar onBack={onBack} label={isLastSet ? "Beenden" : "Weiter"} onForward={onCommit} />
+    </div>
+  );
+}
+
+function SetRest({ seconds, nextLabel, onBack, onNext }) {
   return (
     <div className="rise" style={{ textAlign: "center", paddingTop: 6 }}>
-      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 18 }}>Pause</div>
-      <div style={{ position: "relative", width: 180, height: 180, margin: "0 auto 8px" }}>
-        <svg width="180" height="180" style={{ transform: "rotate(-90deg)" }}>
-          <circle cx="90" cy="90" r={R} fill="none" stroke={C.surface2} strokeWidth="10" />
-          <circle cx="90" cy="90" r={R} fill="none" stroke={left === 0 ? C.mint : C.gold} strokeWidth="10" strokeLinecap="round" strokeDasharray={CIRC} strokeDashoffset={CIRC * (1 - frac)} style={{ transition: "stroke-dashoffset 1s linear, stroke .3s" }} />
-        </svg>
-        <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-          <div style={{ ...display, fontSize: 46, lineHeight: 1 }}>{mm}:{ss}</div><div style={{ ...body, fontSize: 11, color: C.muted }}>von {seconds}s</div>
+      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 22 }}>Satzpause</div>
+      <Timer mode="down" seconds={seconds} label={`${fmtDur(seconds)} Pause`} />
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginTop: 24 }}>
+        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Als Nächstes</div>
+        <div style={{ ...body, fontSize: 15, color: C.text }}>{nextLabel}</div>
+      </div>
+      <NavBar onBack={onBack} label="Weiter" onForward={onNext} />
+    </div>
+  );
+}
+
+function ExResult({ entry, onBack, onNext, isLast }) {
+  if (entry.type === "duration") {
+    const r = durationResult(entry.target.minutes, entry.actual.seconds);
+    const col = r.ok ? C.gold : C.clay;
+    return (
+      <div className="rise" style={{ textAlign: "center", paddingTop: 8 }}>
+        <div className="pop" style={{ width: 80, height: 80, borderRadius: "50%", background: r.ok ? C.goldSoft : C.claySoft, border: `2px solid ${col}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "8px auto 16px" }}>{r.ok ? <Check size={38} color={col} /> : <X size={38} color={col} />}</div>
+        <div style={{ ...display, fontSize: 28, marginBottom: 2 }}>{entry.name}</div>
+        <div style={{ ...display, fontSize: 22, color: col, marginBottom: 6 }}>{fmtDur(r.elapsedSec)}</div>
+        <div style={{ ...body, fontSize: 14, color: C.muted, marginBottom: 20 }}>{r.sub}</div>
+        <NavBar onBack={onBack} label={isLast ? "Auswertung" : "Weiter"} onForward={onNext} />
+      </div>
+    );
+  }
+  const st = stimulus(entry.score);
+  const vol = volumeOf(entry);
+  return (
+    <div className="rise">
+      <div style={{ textAlign: "center", marginBottom: 14 }}>
+        <div style={{ ...body, fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 2 }}>Reizintensität</div>
+        <div className="pop" style={{ ...display, fontSize: 56, color: st.color, lineHeight: 1 }}>{entry.score}<span style={{ fontSize: 24 }}>%</span></div>
+        <div style={{ ...display, fontSize: 22, color: st.color, marginTop: 4 }}>{st.label}</div>
+        <div style={{ ...body, fontSize: 15, color: C.text, marginTop: 6 }}>{entry.name}</div>
+      </div>
+      <div style={{ marginBottom: 16, padding: "0 4px" }}>
+        <div style={{ position: "relative", height: 12, borderRadius: 6, background: `linear-gradient(90deg, ${C.clay} 0%, ${C.clay} 12%, ${C.gold} 42%, ${C.mint} 80%, ${C.mint} 90%, ${C.gold} 100%)` }}>
+          <div style={{ position: "absolute", left: `${Math.max(0, Math.min(100, entry.score))}%`, top: -4, bottom: -4, width: 3, background: "#fff", borderRadius: 2, transform: "translateX(-50%)", boxShadow: "0 0 5px rgba(0,0,0,.55)" }} />
+        </div>
+        <div style={{ position: "relative", height: 12, marginTop: 5, ...body, fontSize: 9, color: C.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>
+          <span style={{ position: "absolute", left: 0 }}>zu wenig</span>
+          <span style={{ position: "absolute", left: "85%", transform: "translateX(-50%)", color: C.mint }}>optimal</span>
+          <span style={{ position: "absolute", right: 0 }}>zu viel</span>
         </div>
       </div>
-      <div className="flex items-center justify-center gap-2" style={{ marginBottom: 22 }}>
-        <button onClick={() => setLeft((l) => l + 30)} style={{ ...body, fontSize: 12, color: C.text, background: C.surface2, border: `1px solid ${C.line}`, padding: "7px 14px", borderRadius: 999, cursor: "pointer" }}>+30s</button>
+      <div style={{ ...body, fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 16, padding: "0 8px" }}>{st.hint}</div>
+      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 16px" }}>
+        {entry.actual.map((s, i) => (
+          <div key={i} className="flex items-center justify-between" style={{ padding: "7px 0", borderBottom: i < entry.actual.length - 1 ? `1px solid ${C.line}` : "none" }}>
+            <span style={{ ...display, fontSize: 14, color: C.muted, width: 52 }}>Satz {i + 1}</span>
+            <span style={{ ...body, fontSize: 14, color: C.text, flex: 1, textAlign: "center" }}>{entry.type === "hold" ? `${s.seconds}s` : `${s.reps} × ${s.weight} kg`}</span>
+            <span style={{ ...body, fontSize: 11, color: (EFFORT[s.effort] || EFFORT.fordernd).color, fontWeight: 600, width: 72, textAlign: "right" }}>{(EFFORT[s.effort] || EFFORT.fordernd).label}</span>
+          </div>
+        ))}
+        {entry.type === "strength" && (
+          <div className="flex items-center justify-between" style={{ paddingTop: 9, marginTop: 2, borderTop: `1px solid ${C.line}` }}>
+            <span style={{ ...body, fontSize: 12, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Volumen</span>
+            <span style={{ ...body, fontSize: 14, color: C.gold, fontWeight: 700 }}>{vol.toLocaleString("de-DE")} kg</span>
+          </div>
+        )}
       </div>
-      {nextEx && <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginBottom: 16 }}><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Als Nächstes</div><div style={{ ...body, fontSize: 15, color: C.text }}>{nextEx.name}</div></div>}
-      <FinishBtn label="Nächste Übung" onClick={onDone} />
+      <NavBar onBack={onBack} label={isLast ? "Auswertung" : "Weiter"} onForward={onNext} />
+    </div>
+  );
+}
+
+function ExRest({ seconds, nextEx, onBack, onNext }) {
+  return (
+    <div className="rise" style={{ textAlign: "center", paddingTop: 6 }}>
+      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 22 }}>Übungspause</div>
+      <Timer mode="down" seconds={seconds} label={`${fmtDur(seconds)} Pause`} />
+      {nextEx && (
+        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginTop: 24 }}>
+          <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Nächste Übung</div>
+          <div style={{ ...body, fontSize: 15, color: C.text }}>{nextEx.name}</div>
+        </div>
+      )}
+      <NavBar onBack={onBack} label="Weiter" onForward={onNext} />
     </div>
   );
 }
