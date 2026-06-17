@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wo die Marge sitzt — KI-Marktrecherche für John A. Mason</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F1F3EF;
+    --surface:#FBFCFA;
+    --ink:#13201C;
+    --ink-soft:#404D48;
+    --petrol:#0B5A50;
+    --petrol-deep:#063f39;
+    --amber:#9F5B11;
+    --amber-line:#C98A3A;
+    --amber-tint:#F4E9D7;
+    --line:#D8DCD4;
+    --line-strong:#C3C9BF;
+    --maxw:1180px;
+    --content:42rem;
+    --rail:15rem;
+    --gap:3rem;
+  }
+
+  *{box-sizing:border-box;}
+  html{-webkit-text-size-adjust:100%;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:17px;
+    line-height:1.62;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 1.6rem;}
+
+  /* ---------- type ---------- */
+  h1,h2,h3{font-family:"Fraunces",Georgia,serif;font-weight:500;line-height:1.1;letter-spacing:-0.01em;color:var(--ink);}
+  .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.74rem;
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    color:var(--petrol);
+    font-weight:500;
+  }
+  p{margin:0 0 1.05rem;}
+  a{color:var(--petrol);text-underline-offset:3px;}
+  strong{font-weight:600;}
+
+  /* ---------- hero ---------- */
+  header.hero{padding:4.6rem 0 2.4rem;}
+  .hero .eyebrow{display:block;margin-bottom:1.4rem;}
+  .hero h1{
+    font-size:clamp(2.7rem,7vw,4.7rem);
+    margin:0 0 1.3rem;
+    max-width:14ch;
+    font-weight:600;
+  }
+  .hero .deck{
+    font-size:clamp(1.12rem,2.4vw,1.35rem);
+    color:var(--ink-soft);
+    max-width:38ch;
+    line-height:1.5;
+    margin:0;
+  }
+  .sig-rule{display:flex;align-items:center;gap:.9rem;margin:2.5rem 0 0;}
+  .sig-rule .bar{height:2px;background:var(--petrol);flex:1;max-width:7rem;}
+  .sig-rule .node{width:9px;height:9px;border-radius:50%;background:var(--amber);box-shadow:0 0 0 4px var(--amber-tint);}
+  .meta-row{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.78rem;color:var(--ink-soft);
+    letter-spacing:.02em;margin-top:1.3rem;
+  }
+  .meta-row span{color:var(--petrol);}
+
+  /* ---------- legend / reading guide ---------- */
+  .legend{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:1.5rem 1.7rem;
+    margin:2.2rem 0 0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1.3rem 2rem;
+  }
+  .legend .lg-title{
+    grid-column:1/-1;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:.1rem;
+  }
+  .lg-item{font-size:.93rem;line-height:1.5;color:var(--ink-soft);}
+  .lg-item b{color:var(--ink);font-weight:600;}
+  .lg-chip-term{
+    border-bottom:2px dotted var(--petrol);
+    color:var(--petrol);font-weight:600;cursor:default;
+    padding-bottom:1px;
+  }
+  .lg-chip-term::after{content:"\00a0\24D8";font-size:.78em;opacity:.75;}
+  .lg-chip-method{
+    display:inline-block;font-family:"IBM Plex Mono",monospace;
+    font-size:.72rem;font-weight:500;color:var(--amber);
+    border:1px solid var(--amber-line);border-radius:5px;
+    padding:.05rem .4rem;background:var(--amber-tint);
+  }
+
+  /* ---------- featured "how it was made" panel ---------- */
+  .making{
+    margin:3.2rem 0 1rem;
+    background:var(--ink);
+    color:#E8ECE6;
+    border-radius:18px;
+    padding:2.4rem 2.2rem 2.1rem;
+    position:relative;
+    overflow:hidden;
+  }
+  .making::before{
+    content:"";position:absolute;right:-60px;top:-60px;
+    width:220px;height:220px;border-radius:50%;
+    background:radial-gradient(circle,rgba(159,91,17,.34),transparent 70%);
+  }
+  .making .eyebrow{color:var(--amber-line);position:relative;}
+  .making h2{color:#fff;font-size:clamp(1.5rem,3.4vw,2rem);margin:.7rem 0 1rem;max-width:20ch;position:relative;}
+  .making p{color:#CDD4CD;max-width:60ch;position:relative;}
+  .making p strong{color:#fff;}
+  .facts{
+    display:flex;flex-wrap:wrap;gap:1.7rem 2.6rem;
+    margin-top:1.7rem;padding-top:1.5rem;
+    border-top:1px solid rgba(255,255,255,.13);
+    position:relative;
+  }
+  .fact .n{font-family:"Fraunces",serif;font-size:1.85rem;font-weight:600;color:#fff;line-height:1;}
+  .fact .l{font-family:"IBM Plex Mono",monospace;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;color:#9FB0A6;margin-top:.4rem;}
+
+  /* ---------- section scaffolding ---------- */
+  section.part{padding:3.4rem 0 0;}
+  .part > .eyebrow{display:block;margin-bottom:.7rem;}
+  .part h2{font-size:clamp(1.7rem,4vw,2.5rem);margin:0 0 1.1rem;max-width:24ch;}
+  .intro-copy{max-width:42rem;}
+  .intro-copy p{color:var(--ink-soft);}
+
+  /* ---------- annotated two-column block ---------- */
+  .block{
+    display:grid;
+    grid-template-columns:minmax(0,var(--content)) var(--rail);
+    gap:var(--gap);
+    align-items:start;
+    margin-top:1.8rem;
+  }
+  .block .main > *:last-child{margin-bottom:0;}
+  .rail{min-width:0;}
+
+  /* ---------- term popover ---------- */
+  .term{
+    position:relative;
+    border-bottom:2px dotted var(--petrol);
+    color:var(--petrol);
+    font-weight:500;
+    cursor:pointer;
+    outline:none;
+  }
+  .term::after{content:"\00a0\24D8";font-size:.74em;opacity:.7;vertical-align:.05em;}
+  .term-pop{
+    display:none;
+    position:absolute;
+    left:50%;
+    bottom:calc(100% + 11px);
+    transform:translateX(-50%);
+    width:min(19rem,78vw);
+    background:var(--ink);
+    color:#EAEEE8;
+    font-family:"IBM Plex Sans",sans-serif;
+    font-weight:400;
+    font-size:.86rem;
+    line-height:1.5;
+    letter-spacing:0;
+    padding:.85rem 1rem;
+    border-radius:11px;
+    box-shadow:0 14px 34px -10px rgba(0,0,0,.4);
+    z-index:40;
+    text-align:left;
+    cursor:auto;
+  }
+  .term-pop::after{
+    content:"";position:absolute;top:100%;left:50%;transform:translateX(-50%);
+    border:7px solid transparent;border-top-color:var(--ink);
+  }
+  .term-pop b{color:var(--amber-line);font-weight:600;}
+  .term:hover .term-pop,
+  .term.is-open .term-pop,
+  .term:focus-visible .term-pop{display:block;}
+
+  /* ---------- method sidenote ---------- */
+  details.sidenote{
+    background:var(--amber-tint);
+    border:1px solid var(--amber-line);
+    border-radius:11px;
+    padding:.7rem .95rem .85rem;
+    font-size:.84rem;
+    line-height:1.5;
+    color:#5C4A33;
+    position:sticky;
+    top:1.4rem;
+  }
+  details.sidenote + details.sidenote{margin-top:1rem;}
+  details.sidenote summary{
+    list-style:none;
+    cursor:default;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.66rem;
+    letter-spacing:.13em;
+    text-transform:uppercase;
+    color:var(--amber);
+    font-weight:500;
+    display:flex;align-items:center;gap:.45rem;
+    margin-bottom:.5rem;
+  }
+  details.sidenote summary::-webkit-details-marker{display:none;}
+  details.sidenote summary .gear{font-size:.95rem;line-height:1;}
+  details.sidenote summary .toggle{display:none;}
+  details.sidenote p{margin:0;color:#5C4A33;}
+  details.sidenote p strong{color:#3F3120;font-weight:600;}
+
+  /* ---------- cluster cards ---------- */
+  .cluster{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:1.5rem 1.6rem 1.6rem;
+  }
+  .cluster + .cluster{margin-top:0;}
+  .cluster-head{display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;margin-bottom:.55rem;}
+  .cluster-num{font-family:"IBM Plex Mono",monospace;font-size:.78rem;color:var(--ink-soft);font-weight:500;}
+  .cluster h3{font-size:1.28rem;margin:0;flex:1;min-width:60%;font-weight:600;}
+  .cluster p{margin:.55rem 0 0;font-size:.97rem;color:var(--ink-soft);line-height:1.56;}
+  .cluster p:first-of-type{margin-top:.2rem;}
+  .who{font-size:.86rem;color:var(--ink-soft);margin-top:.85rem;padding-top:.75rem;border-top:1px solid var(--line);}
+  .who b{font-family:"IBM Plex Mono",monospace;font-size:.66rem;letter-spacing:.12em;text-transform:uppercase;color:var(--petrol);display:block;margin-bottom:.2rem;font-weight:500;}
+
+  .tag{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:.66rem;letter-spacing:.06em;font-weight:500;
+    padding:.18rem .55rem;border-radius:20px;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:.35rem;
+  }
+  .tag::before{content:"";width:6px;height:6px;border-radius:50%;}
+  .tag-a{background:var(--ink);color:#F1F3EF;}
+  .tag-a::before{background:var(--amber-line);}
+  .tag-b{background:transparent;color:var(--petrol);border:1px solid var(--petrol);}
+  .tag-b::before{background:var(--petrol);}
+  .tag-ab{background:var(--petrol);color:#fff;}
+  .tag-ab::before{background:var(--amber-line);}
+
+  /* ---------- raster list ---------- */
+  .raster{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.1rem;margin-top:1.4rem;}
+  .raster .r{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--petrol);border-radius:0 11px 11px 0;padding:1.05rem 1.2rem;}
+  .raster .r h4{font-family:"Fraunces",serif;font-weight:600;font-size:1.04rem;margin:0 0 .35rem;}
+  .raster .r p{margin:0;font-size:.88rem;color:var(--ink-soft);line-height:1.5;}
+
+  /* ---------- lenses ---------- */
+  .lenses{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-top:1.5rem;}
+  .lens{border-radius:13px;padding:1.4rem 1.5rem;border:1px solid var(--line);background:var(--surface);}
+  .lens .lab{font-family:"IBM Plex Mono",monospace;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;font-weight:500;}
+  .lens.a{border-top:3px solid var(--amber-line);}
+  .lens.a .lab{color:var(--amber);}
+  .lens.b{border-top:3px solid var(--petrol);}
+  .lens.b .lab{color:var(--petrol);}
+  .lens h3{font-size:1.15rem;margin:.5rem 0 .5rem;font-weight:600;}
+  .lens p{margin:0;font-size:.92rem;color:var(--ink-soft);line-height:1.55;}
+
+  /* ---------- caveats ---------- */
+  .caveats{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:2rem 2rem 1.6rem;margin-top:1.8rem;}
+  .caveats ul{list-style:none;margin:1rem 0 0;padding:0;}
+  .caveats li{position:relative;padding-left:1.7rem;margin-bottom:.95rem;color:var(--ink-soft);font-size:.95rem;line-height:1.55;}
+  .caveats li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border:2px solid var(--amber-line);border-radius:50%;}
+  .caveats li:last-child{margin-bottom:0;}
+  .caveats li b{color:var(--ink);font-weight:600;}
+
+  /* ---------- footer ---------- */
+  footer{margin-top:4rem;border-top:1px solid var(--line-strong);padding:2.2rem 0 3.5rem;}
+  footer p{font-family:"IBM Plex Mono",monospace;font-size:.74rem;color:var(--ink-soft);line-height:1.7;letter-spacing:.01em;max-width:60ch;}
+  footer .brand{color:var(--petrol);font-weight:500;}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:860px){
+    body{font-size:16px;}
+    .block{grid-template-columns:1fr;gap:1.1rem;}
+    .rail{order:2;}
+    details.sidenote{position:static;}
+    details.sidenote summary{cursor:pointer;}
+    details.sidenote summary .toggle{display:inline-block;margin-left:auto;transition:transform .2s ease;}
+    details.sidenote[open] summary .toggle{transform:rotate(45deg);}
+    .legend{grid-template-columns:1fr;gap:1rem;}
+    .lenses{grid-template-columns:1fr;}
+    .making{padding:1.9rem 1.5rem;}
+    .facts{gap:1.3rem 1.8rem;}
+  }
+  @media (max-width:480px){
+    .hero{padding-top:3.2rem;}
+    .cluster{padding:1.3rem 1.25rem 1.4rem;}
+  }
+
+  @media (prefers-reduced-motion:no-preference){
+    .reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease;}
+    .reveal.in{opacity:1;transform:none;}
+  }
+
+  :focus-visible{outline:2px solid var(--amber);outline-offset:3px;border-radius:3px;}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">Autonome KI-Marktrecherche · Demonstration</span>
+    <h1>Wo die Marge sitzt</h1>
+    <p class="deck">Eine maschinell erstellte Suche nach margenstarken Nischen im europäischen Chemie- und Pharmahandel — am Beispiel von John A. Mason.</p>
+    <div class="sig-rule"><span class="node"></span><span class="bar"></span></div>
+    <p class="meta-row">Erstellt für <span>Corinna</span> &amp; <span>Matthias</span> · Juni 2026 · ein Demonstrationsdokument</p>
+
+    <div class="legend">
+      <div class="lg-title">So liest sich dieses Dokument — zwei Arten von Hinweisen</div>
+      <div class="lg-item"><b>Fachbegriffe</b> sind mit einer gepunkteten Linie markiert: <span class="lg-chip-term">Excipient</span>. Tippen oder mit der Maus darüberfahren zeigt eine Erklärung in Alltagssprache.</div>
+      <div class="lg-item"><b>Randnotizen in Bernstein</b> — gekennzeichnet mit <span class="lg-chip-method">⚙ Methode</span> — erklären, <i>wie</i> die KI an der jeweiligen Stelle vorgegangen ist. Sie sind die Stimme der Maschine über ihre eigene Arbeit.</div>
+    </div>
+  </header>
+
+  <div class="making reveal">
+    <span class="eyebrow">Wie diese Recherche entstanden ist</span>
+    <h2>Eine einzige Anweisung — den Rest hat das System selbst geplant.</h2>
+    <p>Ausgangspunkt war ein Auftrag in normaler Sprache: „Finde margenstarke Nischen im EU-Chemie- und Pharmahandel für ein kleines Handelshaus." <strong>Was danach kam, lief eigenständig:</strong> Die KI hat selbst entschieden, wonach sie sucht, hat über das offene Internet Dutzende Quellen durchsucht — Marktforschungsberichte, Behörden wie die europäische Chemikalien- und die Arzneimittelagentur, Branchen- und Handelsmeldungen — diese gegeneinander abgeglichen, zu neun Themenfeldern verdichtet und am Ende offen benannt, wo ihre eigene Datenbasis dünn ist.</p>
+    <p>Kein Mensch hat einzelne Suchanfragen vorgegeben oder Quellen herausgesucht. Die Aufbereitung dieses Dokuments — Sprache, Erklärungen, Gestaltung — wurde anschließend ebenfalls von derselben KI übernommen.</p>
+    <div class="facts">
+      <div class="fact"><div class="n">1</div><div class="l">Anweisung in Alltagssprache</div></div>
+      <div class="fact"><div class="n">Dutzende</div><div class="l">eigenständig gesuchte Quellen</div></div>
+      <div class="fact"><div class="n">9</div><div class="l">Nischen-Felder</div></div>
+      <div class="fact"><div class="n">2</div><div class="l">Analyse-Linsen</div></div>
+    </div>
+  </div>
+
+  <section class="part">
+    <span class="eyebrow">Die Grundfrage</span>
+    <h2>Marge entsteht nicht beim Kunden, sondern in der richtigen Nische.</h2>
+    <div class="block">
+      <div class="main">
+        <div class="intro-copy">
+          <p>Ein Handelshaus wie Mason verdient nicht am Preis, sondern an der Differenz zwischen Einkauf und Verkauf — und diese Differenz ist bei <span class="term">Spezialchemikalien<span class="term-pop"><b>Spezialchemikalien</b> sind Stoffe für besondere, oft kleine Anwendungen — anders als Massenchemikalien („Commodities"), die in riesigen Mengen und zu transparenten Preisen gehandelt werden. Bei Spezialitäten zählt nicht der niedrigste Preis, sondern Verfügbarkeit, Qualität und Nachweise.</span></span> ungleich höher als bei Massenware. Die Recherche ist deshalb keine reine Kundensuche, sondern die Suche nach <strong>Feldern, in denen die Marge strukturell hoch ist</strong> — und in denen ein kleines, bewegliches Haus eine verteidigbare Position hat.</p>
+          <p>Vier Merkmale machen ein Geschäft margenstark. Sie bilden das Raster, mit dem die KI jede einzelne Nische bewertet hat.</p>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Dieses Bewertungsraster hat die KI <strong>nicht recherchiert, sondern aus der Geschäftslogik eines Handelshauses abgeleitet</strong> — und anschließend konsequent auf alle neun Felder angewandt. So entsteht ein einheitlicher Maßstab statt einer losen Sammlung von Ideen.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="raster">
+      <div class="r"><h4>Die Lücke der Großen</h4><p>Aufträge, die für <span class="term">Großdistributoren<span class="term-pop"><b>Großdistributoren</b> wie Brenntag, Azelis oder IMCD sind die marktbeherrschenden Chemiehändler. Sie bündeln riesige Mengen — und übersehen dabei systematisch kleinere, aufwendigere Aufträge.</span></span> zu klein und für den Hersteller zu klein für Direktlieferung sind. Genau hier ist Platz für ein wendiges Haus.</p></div>
+      <div class="r"><h4>Regulatorische Tiefe</h4><p>Je mehr amtliche Nachweise und Dokumentation ein Stoff verlangt, desto höher die Marge — denn die lückenlose, geprüfte Lieferkette ist das eigentliche Produkt, nicht das Molekül.</p></div>
+      <div class="r"><h4>Knappe Beschaffung</h4><p>Stoffe mit wenigen verfügbaren Lieferanten geben demjenigen Preismacht, der Zugang und Lager hat. Knappheit ist für einen Händler kein Problem, sondern eine Chance.</p></div>
+      <div class="r"><h4>Geringe Preissensitivität</h4><p>Ein Stoff, der nur ein bis drei Prozent der Endproduktkosten ausmacht, aber unverzichtbar ist, wird <span class="term">preisunelastisch<span class="term-pop"><b>Preisunelastisch</b> heißt: Der Käufer feilscht kaum, weil der Stoff für ihn unverzichtbar und im Verhältnis günstig ist. Ein Lieferausfall wäre teurer als jeder Preisaufschlag.</span></span> — der Kunde zahlt für Sicherheit, nicht für den letzten Cent.</p></div>
+    </div>
+  </section>
+
+  <section class="part">
+    <span class="eyebrow">Zwei Analyse-Linsen</span>
+    <h2>Akute Knappheit oder dauerhaftes Wachstum.</h2>
+    <div class="block">
+      <div class="main">
+        <div class="intro-copy">
+          <p>Damit die Ergebnisse nutzbar sind, hat die KI jede Nische einer von zwei Logiken zugeordnet. Beide führen zu Marge, aber auf unterschiedliche Weise — die eine kurzfristig und opportunistisch, die andere planbar und aufbaufähig.</p>
+        </div>
+        <div class="lenses">
+          <div class="lens a">
+            <span class="lab">Linse A</span>
+            <h3>Akute Knappheit</h3>
+            <p>Stoffe, deren Versorgung gerade jetzt angespannt ist — etwa durch Exportbeschränkungen, Werksschließungen oder Lieferstörungen. Sie geben kurzfristige Preismacht, sind aber von Natur aus vorübergehend.</p>
+          </div>
+          <div class="lens b">
+            <span class="lab">Linse B</span>
+            <h3>Strukturelles Wachstum</h3>
+            <p>Märkte, deren Nachfrage dauerhaft wächst — etwa Pharma-Hilfsstoffe, Nahrungsergänzung oder Spezialkosmetik. Sie tragen eine ruhige, langfristig aufbaubare Marge.</p>
+          </div>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Diese Zweiteilung ist ein Beispiel für eine <strong>Einordnung, die die KI selbst eingeführt hat</strong>, um Ordnung zu schaffen. In den Steckbriefen unten trägt jedes Feld das passende Etikett — manche sogar beide.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="part">
+    <span class="eyebrow">Die neun Felder</span>
+    <h2>Wo die Marge konkret liegt.</h2>
+    <div class="intro-copy"><p>Neun Nischen, jede mit dem Stofftyp, dem passenden Abnehmer und der Begründung, warum hier Marge steckt. Die Bandbreite ist Absicht — sie zeigt, wie breit die KI das Feld abgesucht hat.</p></div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">01</span><h3>Pharma-Hilfsstoffe</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p><span class="term">Excipients<span class="term-pop"><b>Excipient (Hilfsstoff)</b> ist alles in einer Tablette außer dem eigentlichen Wirkstoff — Bindemittel, Füllstoffe, Überzüge. Unscheinbar, aber für Herstellbarkeit und Wirkung entscheidend.</span></span> sind die Trägerstoffe in Medikamenten: Bindemittel, Füllstoffe, Überzüge. Der europäische Markt wächst seit Jahren um grob sechs bis acht Prozent pro Jahr.</p>
+          <p>Hohe Dokumentationslast, funktional unverzichtbar, aber nur ein kleiner Kostenanteil — die klassische margenstarke Konstellation.</p>
+          <div class="who"><b>Abnehmer</b>Kleine Generikahersteller, Lohnhersteller, Apotheken-Herstellbetriebe</div>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Die Wachstumszahl stammt aus mehreren kommerziellen Marktberichten, die <strong>teils stark voneinander abweichen</strong>. Die KI nennt deshalb eine Spannweite statt eines scheingenauen Einzelwerts.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">02</span><h3>Versorgungskritische Wirkstoffe</h3><span class="tag tag-ab">Knappheit + Wachstum</span></div>
+          <p>Etablierte <span class="term">Wirkstoffe<span class="term-pop"><b>API (Wirkstoff)</b> — „Active Pharmaceutical Ingredient" — ist der medizinisch wirksame Bestandteil eines Medikaments. Europa bezieht den Großteil davon aus Asien.</span></span> in Engpasslagen, vor allem Antibiotika und ältere Injektionspräparate, sowie Stoffe für die Apothekenherstellung.</p>
+          <p>Europa hängt für rund 70–80 % seiner Wirkstoffe von Asien ab; Lieferengpässe dauern heute im Schnitt etwa fünf Jahre statt früher zwei. Wer bevorratet, hat eine Sicherheitsprämie.</p>
+          <div class="who"><b>Abnehmer</b>Kleine Generikahersteller, Apotheken-Herstellbetriebe, Spezialhersteller</div>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Die Abhängigkeits- und Engpasszahlen hat die KI über <strong>Branchen- und Behördenquellen gegengeprüft</strong>, statt sie aus dem Gedächtnis zu behaupten — bei Zahlen ein wichtiger Unterschied.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">03</span><h3>Vorprodukte für Krebsmedikamente</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p>Vorstufen und Hilfsstoffe für die Herstellung hochwirksamer Wirkstoffe (<span class="term">HPAPI<span class="term-pop"><b>HPAPI</b> sind hochwirksame Wirkstoffe, etwa in der Krebstherapie. Schon kleinste Mengen wirken stark — Herstellung und Handhabung erfordern besondere Schutzvorkehrungen.</span></span>), wie sie in der Onkologie gebraucht werden. Dieser Markt wächst überdurchschnittlich, in Europa um die neun Prozent pro Jahr.</p>
+          <p>Höchste Sicherheits- und Dokumentationslast, kleine Mengen bei hohem Wert — extrem preisunelastisch.</p>
+          <div class="who"><b>Abnehmer</b>Spezialisierte Lohnhersteller, mittelständische Onkologie-Entwickler</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">04</span><h3>Tierarznei-Wirkstoffe</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p>Wirkstoffe und Hilfsstoffe für Tierarzneien — Antiparasitika, Entzündungshemmer, Antiinfektiva. Eine fragmentierte, von den Großen kaum bediente Nische, die um knapp sieben Prozent jährlich wächst.</p>
+          <p>Über 90 % der gängigen Tierarzneien beruhen auf chemisch hergestellten Wirkstoffen; verschärfte EU-Regeln seit 2022 erhöhen den Nachweisbedarf — und damit die Marge.</p>
+          <div class="who"><b>Abnehmer</b>Kleine Veterinärpharma-Hersteller, Tierarznei-Lohnhersteller</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">05</span><h3>Spezial-Kosmetikwirkstoffe</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p>Biotechnologisch gewonnene Wirkstoffe, Peptide, Mikrobiom-Aktive, pflanzliche Extrakte und vegane UV-Filter — der Treibstoff des „Clean Beauty"-Trends.</p>
+          <p>Indie-Kosmetikmarken haben keinen professionellen Großeinkauf, brauchen kleine Mengen, Beratung und INCI-Nachweise. Neue EU-Sorgfaltspflichten machen Herkunftsnachweise ab Ende 2025 verpflichtend — und damit zu einer bezahlten Leistung.</p>
+          <div class="who"><b>Abnehmer</b>Indie- und Auftragskosmetik, kleine Dermokosmetik-Marken</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">06</span><h3>Nahrungsergänzungs-Wirkstoffe</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p>Spezielle Vitamin- und Mineralqualitäten, Omega-3-Konzentrate, pflanzliche Aktive und Pro-/Postbiotika für den boomenden <span class="term">Nutraceutical<span class="term-pop"><b>Nutraceuticals</b> sind Nahrungsergänzungsmittel mit gesundheitlichem Zusatznutzen — Vitamine, Pflanzenstoffe, Probiotika. Ein schnell wachsender, stark regulierter Markt.</span></span>-Markt, der in Europa um sieben bis neun Prozent pro Jahr zulegt.</p>
+          <p>Die EU-Regeln zu neuartigen Lebensmitteln und Gesundheitsaussagen erzeugen eine hohe Nachweis-Hürde — gut für ein dokumentationsstarkes Haus.</p>
+          <div class="who"><b>Abnehmer</b>Nahrungsergänzungs-Hersteller, Lohnabfüller, Apotheken-Eigenmarken</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">07</span><h3>Verknappte technische Spezialstoffe</h3><span class="tag tag-a">Knappheit · A</span></div>
+          <p>Kritische Rohstoffe unter chinesischer <span class="term">Exportkontrolle<span class="term-pop"><b>Exportkontrollen</b> sind staatliche Ausfuhrbeschränkungen. China hat sie auf mehrere kritische Rohstoffe verhängt — mit der Folge zeitweise drastisch steigender Preise in Europa.</span></span> — Gallium, Germanium, Antimon — sowie EU-weit verknappte Stoffe wie Chromtrioxid. Hier hatten europäische Preise zeitweise um mehrere hundert Prozent angezogen.</p>
+          <p>Reine Beschaffungschance: Wer vor einer Eskalation Material sichert, realisiert die Knappheitsprämie. Mit Lager- und Preisrisiko, daher klein zu dimensionieren.</p>
+          <div class="who"><b>Abnehmer</b>Nischen-Verarbeiter in Elektronik, Legierungen, Spezialglas, Flammschutz</div>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Die Versorgungslage hat die KI über <strong>aktuelle Exportkontroll-Meldungen verifiziert</strong> und ausdrücklich vermerkt, dass solche Knappheiten vorübergehend sein können — eine Chance mit eingebautem Verfallsdatum.</p>
+        </details>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">08</span><h3>Spezial-Wasseraufbereitung</h3><span class="tag tag-b">Wachstum · B</span></div>
+          <p>Hochleistungs-Flockungsmittel und „grüne" Korrosionsinhibitoren. Verschärfte EU-Abwasserregeln zwingen Betreiber zur Nachrüstung; der Markt wächst um rund sechs Prozent jährlich.</p>
+          <p>Regulierung verdrängt Altchemie und bevorzugt Stoffe mit sauberer Zulassung — die dann höhere Preise tragen.</p>
+          <div class="who"><b>Abnehmer</b>Mittelständische Wasseraufbereiter, Industrie-Formulierer</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+    <div class="block">
+      <div class="main">
+        <div class="cluster">
+          <div class="cluster-head"><span class="cluster-num">09</span><h3>Elektronik- und Halbleiterchemie</h3><span class="tag tag-ab">Knappheit + Wachstum</span></div>
+          <p>Ultrareine Chemikalien für die Chipfertigung. Der EU-Ausbau eigener Halbleiterwerke treibt die Nachfrage; einzelne Vorstoffe sind zugleich von Exportkontrollen betroffen.</p>
+          <p>Höchste Reinheits- und Dokumentationsanforderungen, kleine spezifizierte Mengen, hohe Liefersicherheits-Prämie.</p>
+          <div class="who"><b>Abnehmer</b>Kleinere Chipwerke, Pilotlinien, Spezial-Beschichter</div>
+        </div>
+      </div>
+      <div class="rail"></div>
+    </div>
+
+  </section>
+
+  <section class="part">
+    <span class="eyebrow">Empfehlung der KI</span>
+    <h2>Fokus statt Gießkanne.</h2>
+    <div class="block">
+      <div class="main">
+        <div class="intro-copy">
+          <p>Aus den neun Feldern leitet die Recherche eine klare Linie ab: nicht alles gleichzeitig verfolgen, sondern auf <strong>zwei, drei regulierte Kernfelder</strong> konzentrieren, die zu einem dokumentationsstarken Handelshaus passen — etwa Pharma-Hilfsstoffe und versorgungskritische Wirkstoffe (Felder 01, 02, 04) sowie Kosmetik- und Nahrungsergänzungs-Wirkstoffe (05, 06).</p>
+          <p>Parallel dazu eine leichte, opportunistische Beobachtung der akuten Knappheiten (07, 09) — dort selektiv und bevorratend zugreifen, wenn sich ein Engpass abzeichnet. Und über allem ein Leistungsversprechen, das den Service selbst zum Produkt macht: kleine Gebinde, Pufferlager, Nachweise, Beratung.</p>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Welche Felder für Mason <strong>tatsächlich spielbar</strong> sind, hängt von den bestehenden Lieferanten und Produkten ab — das weiß das Haus selbst besser als jede Recherche. Die KI liefert die Struktur, das Urteil bleibt beim Menschen.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <section class="part">
+    <span class="eyebrow">Ehrlichkeit über die Grenzen</span>
+    <h2>Was die KI über ihre eigene Arbeit sagt.</h2>
+    <div class="block">
+      <div class="main">
+        <div class="intro-copy"><p>Eine gute Recherche kennt ihre Schwächen und benennt sie. Dass dieser Abschnitt existiert, ist kein Mangel, sondern Teil der Leistung — eine Analyse ohne Unsicherheits-Angabe wäre weniger vertrauenswürdig, nicht mehr.</p></div>
+        <div class="caveats">
+          <ul>
+            <li><b>Marktzahlen sind Richtungswerte.</b> Die Wachstums- und Größenangaben stammen aus kommerziellen Marktforschungsberichten und schwanken je nach Quelle erheblich. Sie zeigen die Richtung, nicht den exakten Wert.</li>
+            <li><b>Knappheitschancen sind vergänglich.</b> Die akuten Engpässe (Linse A) können sich bei politischer Entspannung zurückbilden. Bevorratung trägt Preis- und Lagerrisiko.</li>
+            <li><b>Manche Belege sind älter oder vorausschauend.</b> Ein zentraler Beleg zur Marktkonzentration ist eine EU-Studie von 2013; einige Aussagen zu künftigen Verschärfungen sind Prognosen, keine vollzogenen Tatsachen.</li>
+            <li><b>Dies ist Schreibtisch-Recherche.</b> Sie ersetzt nicht die Markterfahrung im Haus, sondern liefert eine strukturierte Außensicht als Ausgangspunkt für das Gespräch.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="rail">
+        <details class="sidenote" open>
+          <summary><span class="gear">⚙</span><span>Methode</span><span class="toggle">+</span></summary>
+          <p>Dass die KI ihre eigenen Grenzen offen markiert, ist <strong>bewusst so angelegt</strong>. Ein System, das jede Aussage gleich selbstsicher verkauft, wäre gefährlicher — nicht besser.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>Recherche, Analyse und Aufbereitung: <span class="brand">Claude</span> (Anthropic), über einen eigenständigen Recherche-Prozess · Stand Juni 2026 · Internes Demonstrationsdokument für John A. Mason GmbH &amp; Co. KG. Zahlenangaben sind Richtungswerte aus öffentlichen Quellen und vor geschäftlichen Entscheidungen zu prüfen.</p>
+  </footer>
+
+</div>
+
+<script>
+  // Begriffs-Hinweise: Tippen schaltet das Erklär-Fenster (für Touch), Maus-Hover zeigt es ohnehin.
+  (function(){
+    var terms = Array.prototype.slice.call(document.querySelectorAll('.term'));
+    terms.forEach(function(t){
+      if(!t.hasAttribute('tabindex')) t.setAttribute('tabindex','0');
+      t.addEventListener('click', function(e){
+        e.stopPropagation();
+        var isOpen = t.classList.contains('is-open');
+        terms.forEach(function(o){ o.classList.remove('is-open'); });
+        if(!isOpen) t.classList.add('is-open');
+      });
+      t.addEventListener('keydown', function(e){
+        if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); t.click(); }
+        if(e.key === 'Escape'){ t.classList.remove('is-open'); }
+      });
+    });
+    document.addEventListener('click', function(){
+      terms.forEach(function(o){ o.classList.remove('is-open'); });
+    });
+  })();
+
+  // Sanfte Scroll-Einblendung, sofern nicht reduzierte Bewegung gewünscht ist.
+  (function(){
+    if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    var els = document.querySelectorAll('.reveal');
+    if(!('IntersectionObserver' in window)){ els.forEach(function(e){ e.classList.add('in'); }); return; }
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ if(en.isIntersecting){ en.target.classList.add('in'); io.unobserve(en.target); } });
+    },{threshold:0.12});
+    els.forEach(function(e){ io.observe(e); });
+  })();
+</script>
+
+</body>
+</html>
