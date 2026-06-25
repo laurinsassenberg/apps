@@ -10,30 +10,18 @@
   html, body { margin: 0; padding: 0; background: #0e0f12; }
   #root { min-height: 100vh; }
   .boot { color:#8a8f9a; font-family: system-ui, sans-serif; display:flex; align-items:center; justify-content:center; min-height:100vh; }
-  /* Layout-Utilities (Tailwind-Ersatz für den Standalone-Build) */
-  .flex { display: flex; }
-  .flex-col { flex-direction: column; }
-  .items-center { align-items: center; }
-  .items-start { align-items: flex-start; }
-  .items-baseline { align-items: baseline; }
-  .justify-center { justify-content: center; }
-  .justify-between { justify-content: space-between; }
-  .justify-around { justify-content: space-around; }
-  .gap-1 { gap: 0.25rem; }
-  .gap-2 { gap: 0.5rem; }
-  .gap-3 { gap: 0.75rem; }
-  .text-center { text-align: center; }
-  .text-left { text-align: left; }
+  .flex{display:flex;} .flex-col{flex-direction:column;}
+  .items-center{align-items:center;} .items-start{align-items:flex-start;} .items-baseline{align-items:baseline;}
+  .justify-center{justify-content:center;} .justify-between{justify-content:space-between;} .justify-around{justify-content:space-around;}
+  .gap-1{gap:.25rem;} .gap-2{gap:.5rem;} .gap-3{gap:.75rem;}
+  .text-center{text-align:center;} .text-left{text-align:left;}
 </style>
 </head>
 <body>
 <div id="root"><div class="boot">Lade Trainster…</div></div>
-
-<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-<script src="https://unpkg.com/@babel/standalone/babel.min.js" crossorigin></script>
-
-<script type="text/babel" data-presets="react">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js" crossorigin></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js" crossorigin></script>
+<script>
 const { useState, useEffect, useRef } = React;
 
 /* Speicher: localStorage-Polyfill mit derselben async-API wie im Artifact */
@@ -64,14 +52,10 @@ const {
 } = ICONS;
 
 /* ===== App (v2.1.0) ===== */
-
-
 /* ============================================================
    THEME — "Jarvis Training Console"
    ============================================================ */
-const FONT_LINK =
-  "https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap";
-
+const FONT_LINK = "https://fonts.googleapis.com/css2?family=Anton&family=Archivo:wght@400;500;600;700&display=swap";
 const C = {
   bg: "#0e0f12",
   bgGrad: "radial-gradient(1200px 600px at 50% -10%, #1b1d23 0%, #0e0f12 60%)",
@@ -85,12 +69,16 @@ const C = {
   mint: "#3ddc97",
   mintSoft: "rgba(61,220,151,0.12)",
   clay: "#e5645b",
-  claySoft: "rgba(229,100,91,0.12)",
+  claySoft: "rgba(229,100,91,0.12)"
 };
-const display = { fontFamily: "'Anton', system-ui, sans-serif", letterSpacing: "0.01em" };
-const body = { fontFamily: "'Archivo', system-ui, sans-serif" };
-
-const uid = (p) => p + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
+const display = {
+  fontFamily: "'Anton', system-ui, sans-serif",
+  letterSpacing: "0.01em"
+};
+const body = {
+  fontFamily: "'Archivo', system-ui, sans-serif"
+};
+const uid = p => p + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 
 /* Einheiten-Konvention: "Einheit N" ist gesetzt (Nummer = Position), Bezeichnung optional. */
 const unitTitle = (index, label) => {
@@ -105,28 +93,32 @@ function migratePlan(p) {
     restCompound: p.restCompound != null ? p.restCompound : 90,
     restIsolation: p.restIsolation != null ? p.restIsolation : 60,
     exRest: p.exRest != null ? p.exRest : 120,
-    days: p.days.map((d) => {
+    days: p.days.map(d => {
       let label = d.label;
       if (label === undefined) {
         const raw = typeof d.name === "string" ? d.name : "";
         label = raw.replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
       }
-      const { name, ...rest } = d;
-      const exercises = Array.isArray(d.exercises)
-        ? d.exercises.map((e) =>
-            (e.type === "strength" || e.type === "hold") && !e.category
-              ? { ...e, category: e.type === "hold" ? "isolation" : "compound" }
-              : e
-          )
-        : d.exercises;
-      return { ...rest, exercises, label: label || "" };
-    }),
+      const {
+        name,
+        ...rest
+      } = d;
+      const exercises = Array.isArray(d.exercises) ? d.exercises.map(e => (e.type === "strength" || e.type === "hold") && !e.category ? {
+        ...e,
+        category: e.type === "hold" ? "isolation" : "compound"
+      } : e) : d.exercises;
+      return {
+        ...rest,
+        exercises,
+        label: label || ""
+      };
+    })
   };
 }
 
 /* Satzpause einer Übung aus Kategorie (Compound/Isolation) + Plan-Werten ableiten. */
 function setRestFor(plan, ex) {
-  const cat = ex && ex.category ? ex.category : (ex && ex.type === "hold" ? "isolation" : "compound");
+  const cat = ex && ex.category ? ex.category : ex && ex.type === "hold" ? "isolation" : "compound";
   const comp = plan.restCompound != null ? plan.restCompound : 90;
   const iso = plan.restIsolation != null ? plan.restIsolation : 60;
   return cat === "isolation" ? iso : comp;
@@ -141,53 +133,239 @@ const SEED_PLAN = {
   restCompound: 90,
   restIsolation: 60,
   exRest: 120,
-  days: [
-    {
-      id: "tag1", label: "Oberkörper",
-      exercises: [
-        { id: "t1_warm", type: "duration", name: "Aufwärmen", minutes: 10, desc: "Lockeres Cardio plus Schulter- und Brustmobilisation.", hint: "Puls hochfahren, Gelenke öffnen — noch keine Maximalkraft." },
-        { id: "t1_bank", type: "strength", category: "compound", name: "Bankdrücken / Brustpresse", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Brust, vordere Schulter, Trizeps.", hint: "Schulterblätter zusammen und nach unten, kontrollierte Exzentrik." },
-        { id: "t1_lat", type: "strength", category: "compound", name: "Latzug", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Breiter Rücken (Latissimus).", hint: "Brust raus, Stange zur oberen Brust, nicht im Schwung." },
-        { id: "t1_press", type: "strength", category: "compound", name: "Schulterdrücken", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Vordere und seitliche Schulter.", hint: "Rumpf fest, nicht ins Hohlkreuz drücken." },
-        { id: "t1_row", type: "strength", category: "compound", name: "Kabelrudern", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Mittlerer Rücken.", hint: "Ellbogen eng am Körper, Schulterblätter aktiv." },
-        { id: "t1_fly", type: "strength", category: "isolation", name: "Fly", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Brust-Isolation.", hint: "Leichte Ellbogenbeugung halten, Dehnung spüren." },
-        { id: "t1_tri", type: "strength", category: "isolation", name: "Trizeps-Pushdown", sets: 3, repsMin: 10, repsMax: 15, weight: 0, desc: "Trizeps-Isolation.", hint: "Ellbogen fixiert am Körper." },
-        { id: "t1_bi", type: "strength", category: "isolation", name: "Bizeps-Curl", sets: 3, repsMin: 10, repsMax: 15, weight: 0, desc: "Bizeps-Isolation.", hint: "Kein Schwung aus dem Rücken." },
-        { id: "t1_side", type: "strength", category: "isolation", name: "Seitheben", optional: true, sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Seitliche Schulter. Optional.", hint: "Leichtes Gewicht, Ellbogen führt." },
-        { id: "t1_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Laufband, Zone 2.", hint: "Lockeres Tempo — du könntest noch sprechen." },
-      ],
-    },
-    {
-      id: "tag2", label: "Unterkörper + Rumpf",
-      exercises: [
-        { id: "t2_warm", type: "duration", name: "Aufwärmen", minutes: 10, desc: "Lockeres Cardio + Hüft-/Kniemobilisation, 1–2 leichte Aufwärmsätze Kniebeuge.", hint: "Gelenke vorbereiten, Bewegungsumfang öffnen." },
-        { id: "t2_squat", type: "strength", category: "compound", name: "Kniebeuge", sets: 4, repsMin: 8, repsMax: 12, weight: 0, desc: "Beine gesamt, Rumpf.", hint: "Knie in Zehenrichtung, Tiefe so weit Technik sauber bleibt." },
-        { id: "t2_legpress", type: "strength", category: "compound", name: "Beinpresse", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Quadrizeps, Gesäß.", hint: "Knie nicht ganz durchstrecken, Füße schulterbreit." },
-        { id: "t2_rdl", type: "strength", category: "compound", name: "Rumänisches Kreuzheben", sets: 3, repsMin: 10, repsMax: 12, weight: 0, desc: "Beinbeuger, Gesäß. Alt.: Beinbeuger-Maschine.", hint: "Hüfte nach hinten, Rücken neutral, leichte Kniebeugung." },
-        { id: "t2_legext", type: "strength", category: "isolation", name: "Beinstrecker", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Quadrizeps-Isolation.", hint: "Oben kurz halten, kontrolliert ablassen." },
-        { id: "t2_calf", type: "strength", category: "isolation", name: "Wadenheben", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Waden.", hint: "Volle Streckung oben, Dehnung unten." },
-        { id: "t2_abs", type: "strength", category: "isolation", name: "Bauch", sets: 3, repsMin: 12, repsMax: 15, weight: 0, desc: "Bauch-Maschine oder Crunch (Gewicht 0 = Körpergewicht).", hint: "Bewegung aus dem Bauch, nicht aus dem Nacken." },
-        { id: "t2_plank", type: "hold", category: "isolation", name: "Plank", sets: 3, seconds: 45, desc: "Statische Rumpfspannung.", hint: "Gerade Linie Kopf–Hüfte–Ferse, Po anspannen." },
-        { id: "t2_cool", type: "duration", name: "Cool-Down", minutes: 30, desc: "30 min Rudergerät, Zone 2.", hint: "Lockeres Tempo, Puls oben halten." },
-      ],
-    },
-  ],
+  days: [{
+    id: "tag1",
+    label: "Oberkörper",
+    exercises: [{
+      id: "t1_warm",
+      type: "duration",
+      name: "Aufwärmen",
+      minutes: 10,
+      desc: "Lockeres Cardio plus Schulter- und Brustmobilisation.",
+      hint: "Puls hochfahren, Gelenke öffnen — noch keine Maximalkraft."
+    }, {
+      id: "t1_bank",
+      type: "strength",
+      category: "compound",
+      name: "Bankdrücken / Brustpresse",
+      sets: 4,
+      repsMin: 8,
+      repsMax: 12,
+      weight: 0,
+      desc: "Brust, vordere Schulter, Trizeps.",
+      hint: "Schulterblätter zusammen und nach unten, kontrollierte Exzentrik."
+    }, {
+      id: "t1_lat",
+      type: "strength",
+      category: "compound",
+      name: "Latzug",
+      sets: 4,
+      repsMin: 8,
+      repsMax: 12,
+      weight: 0,
+      desc: "Breiter Rücken (Latissimus).",
+      hint: "Brust raus, Stange zur oberen Brust, nicht im Schwung."
+    }, {
+      id: "t1_press",
+      type: "strength",
+      category: "compound",
+      name: "Schulterdrücken",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 12,
+      weight: 0,
+      desc: "Vordere und seitliche Schulter.",
+      hint: "Rumpf fest, nicht ins Hohlkreuz drücken."
+    }, {
+      id: "t1_row",
+      type: "strength",
+      category: "compound",
+      name: "Kabelrudern",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 12,
+      weight: 0,
+      desc: "Mittlerer Rücken.",
+      hint: "Ellbogen eng am Körper, Schulterblätter aktiv."
+    }, {
+      id: "t1_fly",
+      type: "strength",
+      category: "isolation",
+      name: "Fly",
+      sets: 3,
+      repsMin: 12,
+      repsMax: 15,
+      weight: 0,
+      desc: "Brust-Isolation.",
+      hint: "Leichte Ellbogenbeugung halten, Dehnung spüren."
+    }, {
+      id: "t1_tri",
+      type: "strength",
+      category: "isolation",
+      name: "Trizeps-Pushdown",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 15,
+      weight: 0,
+      desc: "Trizeps-Isolation.",
+      hint: "Ellbogen fixiert am Körper."
+    }, {
+      id: "t1_bi",
+      type: "strength",
+      category: "isolation",
+      name: "Bizeps-Curl",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 15,
+      weight: 0,
+      desc: "Bizeps-Isolation.",
+      hint: "Kein Schwung aus dem Rücken."
+    }, {
+      id: "t1_side",
+      type: "strength",
+      category: "isolation",
+      name: "Seitheben",
+      optional: true,
+      sets: 3,
+      repsMin: 12,
+      repsMax: 15,
+      weight: 0,
+      desc: "Seitliche Schulter. Optional.",
+      hint: "Leichtes Gewicht, Ellbogen führt."
+    }, {
+      id: "t1_cool",
+      type: "duration",
+      name: "Cool-Down",
+      minutes: 30,
+      desc: "30 min Laufband, Zone 2.",
+      hint: "Lockeres Tempo — du könntest noch sprechen."
+    }]
+  }, {
+    id: "tag2",
+    label: "Unterkörper + Rumpf",
+    exercises: [{
+      id: "t2_warm",
+      type: "duration",
+      name: "Aufwärmen",
+      minutes: 10,
+      desc: "Lockeres Cardio + Hüft-/Kniemobilisation, 1–2 leichte Aufwärmsätze Kniebeuge.",
+      hint: "Gelenke vorbereiten, Bewegungsumfang öffnen."
+    }, {
+      id: "t2_squat",
+      type: "strength",
+      category: "compound",
+      name: "Kniebeuge",
+      sets: 4,
+      repsMin: 8,
+      repsMax: 12,
+      weight: 0,
+      desc: "Beine gesamt, Rumpf.",
+      hint: "Knie in Zehenrichtung, Tiefe so weit Technik sauber bleibt."
+    }, {
+      id: "t2_legpress",
+      type: "strength",
+      category: "compound",
+      name: "Beinpresse",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 12,
+      weight: 0,
+      desc: "Quadrizeps, Gesäß.",
+      hint: "Knie nicht ganz durchstrecken, Füße schulterbreit."
+    }, {
+      id: "t2_rdl",
+      type: "strength",
+      category: "compound",
+      name: "Rumänisches Kreuzheben",
+      sets: 3,
+      repsMin: 10,
+      repsMax: 12,
+      weight: 0,
+      desc: "Beinbeuger, Gesäß. Alt.: Beinbeuger-Maschine.",
+      hint: "Hüfte nach hinten, Rücken neutral, leichte Kniebeugung."
+    }, {
+      id: "t2_legext",
+      type: "strength",
+      category: "isolation",
+      name: "Beinstrecker",
+      sets: 3,
+      repsMin: 12,
+      repsMax: 15,
+      weight: 0,
+      desc: "Quadrizeps-Isolation.",
+      hint: "Oben kurz halten, kontrolliert ablassen."
+    }, {
+      id: "t2_calf",
+      type: "strength",
+      category: "isolation",
+      name: "Wadenheben",
+      sets: 3,
+      repsMin: 12,
+      repsMax: 15,
+      weight: 0,
+      desc: "Waden.",
+      hint: "Volle Streckung oben, Dehnung unten."
+    }, {
+      id: "t2_abs",
+      type: "strength",
+      category: "isolation",
+      name: "Bauch",
+      sets: 3,
+      repsMin: 12,
+      repsMax: 15,
+      weight: 0,
+      desc: "Bauch-Maschine oder Crunch (Gewicht 0 = Körpergewicht).",
+      hint: "Bewegung aus dem Bauch, nicht aus dem Nacken."
+    }, {
+      id: "t2_plank",
+      type: "hold",
+      category: "isolation",
+      name: "Plank",
+      sets: 3,
+      seconds: 45,
+      desc: "Statische Rumpfspannung.",
+      hint: "Gerade Linie Kopf–Hüfte–Ferse, Po anspannen."
+    }, {
+      id: "t2_cool",
+      type: "duration",
+      name: "Cool-Down",
+      minutes: 30,
+      desc: "30 min Rudergerät, Zone 2.",
+      hint: "Lockeres Tempo, Puls oben halten."
+    }]
+  }]
 };
 
 /* ============================================================
    STORAGE
    ============================================================ */
 async function sGet(key) {
-  try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; } catch { return null; }
+  try {
+    const r = await window.storage.get(key);
+    return r ? JSON.parse(r.value) : null;
+  } catch {
+    return null;
+  }
 }
-async function sSet(key, val) { try { await window.storage.set(key, JSON.stringify(val)); } catch {} }
-async function sDel(key) { try { await window.storage.delete(key); } catch {} }
+async function sSet(key, val) {
+  try {
+    await window.storage.set(key, JSON.stringify(val));
+  } catch {}
+}
+async function sDel(key) {
+  try {
+    await window.storage.delete(key);
+  } catch {}
+}
 
 /* ============================================================
    LOGIK
    ============================================================ */
 function evalStrength(ex, sets) {
-  const statuses = sets.map((s) => { const r = Number(s.reps) || 0; return r >= ex.repsMax ? 2 : r >= ex.repsMin ? 1 : 0; });
+  const statuses = sets.map(s => {
+    const r = Number(s.reps) || 0;
+    return r >= ex.repsMax ? 2 : r >= ex.repsMin ? 1 : 0;
+  });
   const min = Math.min(...statuses);
   let res = min === 0 ? "verfehlt" : min === 2 ? "uebertroffen" : "erreicht";
   const avgW = sets.reduce((a, s) => a + (Number(s.weight) || 0), 0) / sets.length;
@@ -195,7 +373,7 @@ function evalStrength(ex, sets) {
   return res;
 }
 function evalHold(ex, sets) {
-  const min = Math.min(...sets.map((s) => Number(s.seconds) || 0));
+  const min = Math.min(...sets.map(s => Number(s.seconds) || 0));
   return min >= ex.seconds * 1.15 ? "uebertroffen" : min >= ex.seconds ? "erreicht" : "verfehlt";
 }
 function volumeOf(entry) {
@@ -206,9 +384,24 @@ function volumeOf(entry) {
 /* Effort pro Satz (Nähe zum Versagen, RIR-basiert).
    base = Reizintensität auf der Sweet-Spot-Achse: leicht < fordernd (Optimum) < limit (zu viel) */
 const EFFORT = {
-  leicht:   { label: "Locker",   sub: "noch einiges drin", color: C.muted, base: 30 },
-  fordernd: { label: "Fordernd", sub: "1–2 raus",          color: C.mint,  base: 85 },
-  limit:    { label: "Am Limit", sub: "alles gegeben",     color: C.clay,  base: 96 },
+  leicht: {
+    label: "Locker",
+    sub: "noch einiges drin",
+    color: C.muted,
+    base: 30
+  },
+  fordernd: {
+    label: "Fordernd",
+    sub: "1–2 raus",
+    color: C.mint,
+    base: 85
+  },
+  limit: {
+    label: "Am Limit",
+    sub: "alles gegeben",
+    color: C.clay,
+    base: 96
+  }
 };
 const EFFORT_ORDER = ["leicht", "fordernd", "limit"];
 
@@ -216,8 +409,8 @@ const EFFORT_ORDER = ["leicht", "fordernd", "limit"];
 function scoreStrengthSet(ex, s) {
   let v = (EFFORT[s.effort] || EFFORT.fordernd).base;
   const r = Number(s.reps) || 0;
-  if (r > ex.repsMax) v -= 8;        // mehr als Korridor geschafft → war leichter als angegeben
-  else if (r < ex.repsMin) v += 4;   // unter Korridor → näher am Limit
+  if (r > ex.repsMax) v -= 8; // mehr als Korridor geschafft → war leichter als angegeben
+  else if (r < ex.repsMin) v += 4; // unter Korridor → näher am Limit
   return Math.max(0, Math.min(100, v));
 }
 function scoreStrength(ex, sets) {
@@ -228,12 +421,28 @@ function scoreHold(ex, sets) {
   if (!sets.length) return 0;
   return Math.round(sets.reduce((a, s) => a + (EFFORT[s.effort] || EFFORT.fordernd).base, 0) / sets.length);
 }
-const evalFromScore = (s) => s < 50 ? "verfehlt" : (s >= 80 && s <= 92) ? "uebertroffen" : "erreicht";
+const evalFromScore = s => s < 50 ? "verfehlt" : s >= 80 && s <= 92 ? "uebertroffen" : "erreicht";
 function stimulus(score) {
-  if (score < 50) return { label: "Reiz zu gering", color: C.clay, hint: "Zu locker — für Wachstum näher ans Limit (etwa 1–2 Wdh. vor dem Versagen)." };
-  if (score < 80) return { label: "Solide", color: C.gold, hint: "Ordentlicher Reiz. Etwas näher ans Limit geht noch." };
-  if (score <= 92) return { label: "Optimaler Reiz", color: C.mint, hint: "Im Sweet Spot — wenn die Wdh. oben im Korridor rauskommen, Gewicht erhöhen." };
-  return { label: "Sehr hart", color: C.gold, hint: "Maximal nah am Versagen. Effektiv, aber kostet viel Erholung — nicht jeder Satz muss bis zum Limit." };
+  if (score < 50) return {
+    label: "Reiz zu gering",
+    color: C.clay,
+    hint: "Zu locker — für Wachstum näher ans Limit (etwa 1–2 Wdh. vor dem Versagen)."
+  };
+  if (score < 80) return {
+    label: "Solide",
+    color: C.gold,
+    hint: "Ordentlicher Reiz. Etwas näher ans Limit geht noch."
+  };
+  if (score <= 92) return {
+    label: "Optimaler Reiz",
+    color: C.mint,
+    hint: "Im Sweet Spot — wenn die Wdh. oben im Korridor rauskommen, Gewicht erhöhen."
+  };
+  return {
+    label: "Sehr hart",
+    color: C.gold,
+    hint: "Maximal nah am Versagen. Effektiv, aber kostet viel Erholung — nicht jeder Satz muss bis zum Limit."
+  };
 }
 
 /* Cardio/Dauer: Zeitformat + Bewertung (zu kurz / im Fenster bis +5 min / zu lang) */
@@ -241,7 +450,8 @@ const DURATION_TOLERANCE = 300; // Sekunden über Soll, die noch als geschafft g
 function fmtDur(sec) {
   sec = Math.round(Math.abs(sec));
   if (sec < 60) return `${sec} Sek`;
-  const m = Math.floor(sec / 60), s = sec % 60;
+  const m = Math.floor(sec / 60),
+    s = sec % 60;
   return s ? `${m}:${String(s).padStart(2, "0")} min` : `${m} min`;
 }
 function durationResult(targetMin, elapsedSec) {
@@ -250,19 +460,40 @@ function durationResult(targetMin, elapsedSec) {
   const diff = el - targetSec; // >0 drüber, <0 drunter
   const ok = el >= targetSec && diff <= DURATION_TOLERANCE;
   let sub;
-  if (diff === 0) sub = "punktgenau getroffen";
-  else if (diff < 0) sub = `Soll um ${fmtDur(diff)} verfehlt`;
-  else if (ok) sub = `Soll um ${fmtDur(diff)} übertroffen`;
-  else sub = `Soll um ${fmtDur(diff)} überschritten — zu lang`;
-  return { ok, diff, elapsedSec: el, sub };
+  if (diff === 0) sub = "punktgenau getroffen";else if (diff < 0) sub = `Soll um ${fmtDur(diff)} verfehlt`;else if (ok) sub = `Soll um ${fmtDur(diff)} übertroffen`;else sub = `Soll um ${fmtDur(diff)} überschritten — zu lang`;
+  return {
+    ok,
+    diff,
+    elapsedSec: el,
+    sub
+  };
 }
 const EVAL_META = {
-  uebertroffen: { label: "Übertroffen", color: C.mint, soft: C.mintSoft, icon: Trophy },
-  erreicht: { label: "Erreicht", color: C.gold, soft: C.goldSoft, icon: Check },
-  verfehlt: { label: "Verfehlt", color: C.clay, soft: C.claySoft, icon: X },
-  erledigt: { label: "Erledigt", color: C.gold, soft: C.goldSoft, icon: Check },
+  uebertroffen: {
+    label: "Übertroffen",
+    color: C.mint,
+    soft: C.mintSoft,
+    icon: Trophy
+  },
+  erreicht: {
+    label: "Erreicht",
+    color: C.gold,
+    soft: C.goldSoft,
+    icon: Check
+  },
+  verfehlt: {
+    label: "Verfehlt",
+    color: C.clay,
+    soft: C.claySoft,
+    icon: X
+  },
+  erledigt: {
+    label: "Erledigt",
+    color: C.gold,
+    soft: C.goldSoft,
+    icon: Check
+  }
 };
-
 function buildExport(session) {
   const lines = [];
   lines.push(`TRAININGS-LOG — ${session.dateISO.slice(0, 10)}`);
@@ -270,7 +501,7 @@ function buildExport(session) {
   const vol = session.entries.reduce((a, e) => a + volumeOf(e), 0);
   lines.push(`Gesamtvolumen: ${vol.toLocaleString("de-DE")} kg`);
   lines.push("");
-  session.entries.forEach((e) => {
+  session.entries.forEach(e => {
     if (e.type === "duration") {
       const el = e.actual.seconds != null ? e.actual.seconds : (e.actual.minutes || 0) * 60;
       const diff = el - e.target.minutes * 60;
@@ -279,11 +510,11 @@ function buildExport(session) {
     } else if (e.type === "hold") {
       lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}${e.score != null ? ` (Reiz ${e.score}%)` : ""}`);
       lines.push(`  Soll: ${e.target.sets}× ${e.target.seconds}s`);
-      lines.push(`  Ist:  ${e.actual.map((s) => `${s.seconds}s${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
+      lines.push(`  Ist:  ${e.actual.map(s => `${s.seconds}s${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
     } else {
       lines.push(`${e.name} — ${EVAL_META[e.evaluation].label.toUpperCase()}${e.score != null ? ` (Reiz ${e.score}%)` : ""}`);
       lines.push(`  Soll: ${e.target.sets}×${e.target.repsMin}–${e.target.repsMax} @ ${e.target.weight} kg`);
-      lines.push(`  Ist:  ${e.actual.map((s) => `${s.reps}@${s.weight}${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
+      lines.push(`  Ist:  ${e.actual.map(s => `${s.reps}@${s.weight}${s.effort ? ` [${EFFORT[s.effort].label}]` : ""}`).join(", ")}`);
     }
     const notes = (e.actual.length ? e.actual : []).map((s, i) => s.note ? `    Satz ${i + 1}: ${s.note}` : null).filter(Boolean);
     if (notes.length) lines.push(...notes);
@@ -296,72 +527,237 @@ function buildExport(session) {
 /* Plan-Import: tolerantes Parsen + Validierung */
 function parsePlan(raw) {
   let obj;
-  try { obj = JSON.parse(raw); } catch { return { error: "Kein gültiges JSON." }; }
-  if (!obj || typeof obj.name !== "string" || !Array.isArray(obj.days) || obj.days.length === 0)
-    return { error: "Plan braucht ein 'name'-Feld und mindestens eine Einheit in 'days'." };
-  const plan = { id: uid("p_"), name: obj.name.trim() || "Importierter Plan", restCompound: Number(obj.restCompound) || 90, restIsolation: Number(obj.restIsolation) || 60, exRest: Number(obj.exRest) || 120, days: [] };
+  try {
+    obj = JSON.parse(raw);
+  } catch {
+    return {
+      error: "Kein gültiges JSON."
+    };
+  }
+  if (!obj || typeof obj.name !== "string" || !Array.isArray(obj.days) || obj.days.length === 0) return {
+    error: "Plan braucht ein 'name'-Feld und mindestens eine Einheit in 'days'."
+  };
+  const plan = {
+    id: uid("p_"),
+    name: obj.name.trim() || "Importierter Plan",
+    restCompound: Number(obj.restCompound) || 90,
+    restIsolation: Number(obj.restIsolation) || 60,
+    exRest: Number(obj.exRest) || 120,
+    days: []
+  };
   for (const d of obj.days) {
-    if (!d || !Array.isArray(d.exercises)) return { error: "Jede Einheit braucht ein 'exercises'-Array." };
+    if (!d || !Array.isArray(d.exercises)) return {
+      error: "Jede Einheit braucht ein 'exercises'-Array."
+    };
     const lbl = (typeof d.name === "string" ? d.name : "").replace(/^\s*(?:Einheit|Tag)\s*\d+\s*(?:[·:–\-]\s*)?/i, "").trim();
-    const day = { id: uid("d_"), label: lbl, exercises: [] };
+    const day = {
+      id: uid("d_"),
+      label: lbl,
+      exercises: []
+    };
     for (const e of d.exercises) {
       const type = ["strength", "duration", "hold"].includes(e.type) ? e.type : "strength";
-      const base = { id: uid("e_"), type, name: (e.name || "Übung").trim(), desc: e.desc || "", hint: e.hint || "" };
-      if (type === "duration") day.exercises.push({ ...base, minutes: Number(e.minutes) || 10 });
-      else if (type === "hold") day.exercises.push({ ...base, category: e.category === "compound" ? "compound" : "isolation", sets: Number(e.sets) || 3, seconds: Number(e.seconds) || 30 });
-      else day.exercises.push({ ...base, category: e.category === "isolation" ? "isolation" : "compound", optional: !!e.optional, sets: Number(e.sets) || 3, repsMin: Number(e.repsMin) || 8, repsMax: Number(e.repsMax) || 12, weight: Number(e.weight) || 0 });
+      const base = {
+        id: uid("e_"),
+        type,
+        name: (e.name || "Übung").trim(),
+        desc: e.desc || "",
+        hint: e.hint || ""
+      };
+      if (type === "duration") day.exercises.push({
+        ...base,
+        minutes: Number(e.minutes) || 10
+      });else if (type === "hold") day.exercises.push({
+        ...base,
+        category: e.category === "compound" ? "compound" : "isolation",
+        sets: Number(e.sets) || 3,
+        seconds: Number(e.seconds) || 30
+      });else day.exercises.push({
+        ...base,
+        category: e.category === "isolation" ? "isolation" : "compound",
+        optional: !!e.optional,
+        sets: Number(e.sets) || 3,
+        repsMin: Number(e.repsMin) || 8,
+        repsMax: Number(e.repsMax) || 12,
+        weight: Number(e.weight) || 0
+      });
     }
     plan.days.push(day);
   }
-  return { plan };
+  return {
+    plan
+  };
 }
 
 /* ============================================================
    BAUSTEINE
    ============================================================ */
-function Stepper({ value, onChange, step = 1, min = 0, suffix = "" }) {
-  const btn = { width: 36, height: 36, borderRadius: 10, border: `1px solid ${C.line}`, background: C.surface2, color: C.text, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 };
-  return (
-    <div className="flex items-center gap-2">
-      <button style={btn} onClick={() => onChange(Math.max(min, +(Number(value) - step).toFixed(2)))}><Minus size={15} /></button>
-      <div className="flex items-baseline justify-center" style={{ minWidth: 58 }}>
-        <input value={value} inputMode="decimal"
-          onChange={(e) => { const v = e.target.value.replace(/[^0-9.,]/g, "").replace(",", "."); onChange(v === "" ? 0 : Number(v)); }}
-          className="text-center" style={{ ...display, fontSize: 24, width: 50, background: "transparent", color: C.text, border: "none", outline: "none" }} />
-        {suffix && <span style={{ ...body, color: C.muted, fontSize: 13 }}>{suffix}</span>}
-      </div>
-      <button style={btn} onClick={() => onChange(+(Number(value) + step).toFixed(2))}><Plus size={15} /></button>
-    </div>
-  );
+function Stepper({
+  value,
+  onChange,
+  step = 1,
+  min = 0,
+  suffix = ""
+}) {
+  const btn = {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    border: `1px solid ${C.line}`,
+    background: C.surface2,
+    color: C.text,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: "pointer",
+    flexShrink: 0
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    style: btn,
+    onClick: () => onChange(Math.max(min, +(Number(value) - step).toFixed(2)))
+  }, /*#__PURE__*/React.createElement(Minus, {
+    size: 15
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-baseline justify-center",
+    style: {
+      minWidth: 58
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: value,
+    inputMode: "decimal",
+    onChange: e => {
+      const v = e.target.value.replace(/[^0-9.,]/g, "").replace(",", ".");
+      onChange(v === "" ? 0 : Number(v));
+    },
+    className: "text-center",
+    style: {
+      ...display,
+      fontSize: 24,
+      width: 50,
+      background: "transparent",
+      color: C.text,
+      border: "none",
+      outline: "none"
+    }
+  }), suffix && /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      color: C.muted,
+      fontSize: 13
+    }
+  }, suffix)), /*#__PURE__*/React.createElement("button", {
+    style: btn,
+    onClick: () => onChange(+(Number(value) + step).toFixed(2))
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 15
+  })));
 }
-function Pill({ children, color = C.muted, bg = "transparent" }) {
-  return <span style={{ ...body, fontSize: 11, fontWeight: 600, color, background: bg, border: `1px solid ${color}33`, padding: "3px 9px", borderRadius: 999, textTransform: "uppercase", letterSpacing: "0.06em", whiteSpace: "nowrap" }}>{children}</span>;
+function Pill({
+  children,
+  color = C.muted,
+  bg = "transparent"
+}) {
+  return /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 11,
+      fontWeight: 600,
+      color,
+      background: bg,
+      border: `1px solid ${color}33`,
+      padding: "3px 9px",
+      borderRadius: 999,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em",
+      whiteSpace: "nowrap"
+    }
+  }, children);
 }
-function Row({ k, v, accent }) {
-  return (
-    <div className="flex items-center justify-between" style={{ padding: "7px 0", borderBottom: `1px solid ${C.line}` }}>
-      <span style={{ ...body, fontSize: 12, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>{k}</span>
-      <span style={{ ...body, fontSize: 14, color: accent ? C.gold : C.text, fontWeight: accent ? 700 : 500 }}>{v}</span>
-    </div>
-  );
+function Row({
+  k,
+  v,
+  accent
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      padding: "7px 0",
+      borderBottom: `1px solid ${C.line}`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em"
+    }
+  }, k), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: accent ? C.gold : C.text,
+      fontWeight: accent ? 700 : 500
+    }
+  }, v));
 }
-function FinishBtn({ label, onClick, color = C.gold }) {
-  return (
-    <button onClick={onClick} className="flex items-center justify-center gap-2"
-      style={{ width: "100%", background: color, color: "#0e0f12", border: "none", borderRadius: 14, padding: "16px", cursor: "pointer", ...display, fontSize: 17, letterSpacing: "0.02em" }}>
-      {label} <ArrowRight size={18} />
-    </button>
-  );
+function FinishBtn({
+  label,
+  onClick,
+  color = C.gold
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      width: "100%",
+      background: color,
+      color: "#0e0f12",
+      border: "none",
+      borderRadius: 14,
+      padding: "16px",
+      cursor: "pointer",
+      ...display,
+      fontSize: 17,
+      letterSpacing: "0.02em"
+    }
+  }, label, " ", /*#__PURE__*/React.createElement(ArrowRight, {
+    size: 18
+  }));
 }
-const inputStyle = { width: "100%", background: C.bg, color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", ...body, fontSize: 14, outline: "none" };
+const inputStyle = {
+  width: "100%",
+  background: C.bg,
+  color: C.text,
+  border: `1px solid ${C.line}`,
+  borderRadius: 10,
+  padding: "10px 12px",
+  ...body,
+  fontSize: 14,
+  outline: "none"
+};
 
 /* ============================================================
    APP
    ============================================================ */
 function Splash() {
-  return (
-    <div style={{ ...body, position: "relative", overflow: "hidden", background: C.bgGrad, color: C.text, minHeight: 600, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", animation: "spOut .45s ease 3.5s forwards" }}>
-      <style>{`
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      position: "relative",
+      overflow: "hidden",
+      background: C.bgGrad,
+      color: C.text,
+      minHeight: 600,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      animation: "spOut .45s ease 3.5s forwards"
+    }
+  }, /*#__PURE__*/React.createElement("style", null, `
         @import url('${FONT_LINK}');
         @keyframes spLogo { 0%{opacity:0; transform: scale(.55) translateY(10px);} 65%{opacity:1; transform: scale(1.06) translateY(0);} 100%{opacity:1; transform: scale(1);} }
         @keyframes spLift { 0%,100%{ transform: translateY(0) rotate(0deg);} 50%{ transform: translateY(-4px) rotate(-3deg);} }
@@ -371,34 +767,89 @@ function Splash() {
         @keyframes spBar { 0%{width:0;} 100%{width:100%;} }
         @keyframes spGlow { 0%,100%{opacity:.4; transform:scale(1);} 50%{opacity:.85; transform:scale(1.12);} }
         @keyframes spOut { to{ opacity:0; transform: scale(1.015); } }
-      `}</style>
-
-      <div style={{ position: "absolute", width: 280, height: 280, borderRadius: "50%", top: "30%",
-        background: `radial-gradient(circle, ${C.gold}33 0%, transparent 70%)`, filter: "blur(6px)", animation: "spGlow 2.2s ease-in-out infinite" }} />
-
-      <div style={{ position: "relative", display: "flex", flexDirection: "column", alignItems: "center" }}>
-        <div style={{ animation: "spLogo 1s cubic-bezier(.2,.8,.3,1.2) both" }}>
-          <div style={{ width: 76, height: 76, borderRadius: 18, background: C.gold, display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: `0 14px 44px ${C.gold}55`, animation: "spLift 2.4s ease-in-out 1s infinite" }}>
-            <Dumbbell size={40} color="#0e0f12" />
-          </div>
-        </div>
-
-        <div style={{ ...display, fontSize: 46, marginTop: 22, lineHeight: 1, animation: "spWord .8s ease .6s both" }}>TRAINSTER</div>
-
-        <div style={{ width: 120, height: 2, background: C.gold, marginTop: 12, transformOrigin: "center", animation: "spLine .6s ease 1.1s both" }} />
-
-        <div style={{ ...body, fontSize: 12, color: C.muted, marginTop: 12, letterSpacing: "0.22em", textTransform: "uppercase",
-          animation: "spFadeUp .6s ease 1.5s both" }}>by Laurin Inc.</div>
-      </div>
-
-      <div style={{ position: "absolute", bottom: 52, width: 160, height: 3, background: C.surface2, borderRadius: 999, overflow: "hidden" }}>
-        <div style={{ height: "100%", background: C.gold, borderRadius: 999, animation: "spBar 3.3s ease-out .3s both" }} />
-      </div>
-    </div>
-  );
+      `), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      width: 280,
+      height: 280,
+      borderRadius: "50%",
+      top: "30%",
+      background: `radial-gradient(circle, ${C.gold}33 0%, transparent 70%)`,
+      filter: "blur(6px)",
+      animation: "spGlow 2.2s ease-in-out infinite"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      animation: "spLogo 1s cubic-bezier(.2,.8,.3,1.2) both"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 76,
+      height: 76,
+      borderRadius: 18,
+      background: C.gold,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      boxShadow: `0 14px 44px ${C.gold}55`,
+      animation: "spLift 2.4s ease-in-out 1s infinite"
+    }
+  }, /*#__PURE__*/React.createElement(Dumbbell, {
+    size: 40,
+    color: "#0e0f12"
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 46,
+      marginTop: 22,
+      lineHeight: 1,
+      animation: "spWord .8s ease .6s both"
+    }
+  }, "TRAINSTER"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 120,
+      height: 2,
+      background: C.gold,
+      marginTop: 12,
+      transformOrigin: "center",
+      animation: "spLine .6s ease 1.1s both"
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      marginTop: 12,
+      letterSpacing: "0.22em",
+      textTransform: "uppercase",
+      animation: "spFadeUp .6s ease 1.5s both"
+    }
+  }, "by Laurin Inc.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      bottom: 52,
+      width: 160,
+      height: 3,
+      background: C.surface2,
+      borderRadius: 999,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      background: C.gold,
+      borderRadius: 999,
+      animation: "spBar 3.3s ease-out .3s both"
+    }
+  })));
 }
-
 function App() {
   const [ready, setReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
@@ -406,172 +857,365 @@ function App() {
   const [logs, setLogs] = useState([]);
   const [view, setView] = useState("library");
   const [resumable, setResumable] = useState(null);
-
   const [activePlanId, setActivePlanId] = useState(null);
   const [editorPlan, setEditorPlan] = useState(null);
   const [editorOpenDay, setEditorOpenDay] = useState(null);
-
   const [dayId, setDayId] = useState(null);
   const [exIdx, setExIdx] = useState(0);
   const [setIdx, setSetIdx] = useState(0);
-  const [exDraft, setExDraft] = useState({ sets: [] });
+  const [exDraft, setExDraft] = useState({
+    sets: []
+  });
   const [curSet, setCurSet] = useState(null);
   const [entries, setEntries] = useState([]);
   const [lastEntry, setLastEntry] = useState(null);
   const [pending, setPending] = useState(false);
-
   useEffect(() => {
     (async () => {
       let p = await sGet("plans:v1");
-      if (!p) { const legacy = await sGet("plan:v1"); p = legacy ? [legacy] : [SEED_PLAN]; }
+      if (!p) {
+        const legacy = await sGet("plan:v1");
+        p = legacy ? [legacy] : [SEED_PLAN];
+      }
       p = p.map(migratePlan);
       await sSet("plans:v1", p);
       setPlans(p);
-      const l = await sGet("logs:v1"); if (l) setLogs(l);
+      const l = await sGet("logs:v1");
+      if (l) setLogs(l);
       const active = await sGet("active:v1");
-      if (active) { const pl = p.find((x) => x.id === active.planId); const d = pl?.days.find((x) => x.id === active.dayId); if (d && active.entries.length < d.exercises.length) setResumable(active); }
+      if (active) {
+        const pl = p.find(x => x.id === active.planId);
+        const d = pl?.days.find(x => x.id === active.dayId);
+        if (d && active.entries.length < d.exercises.length) setResumable(active);
+      }
       setReady(true);
     })();
   }, []);
-
   useEffect(() => {
     if (!ready) return;
     const t = setTimeout(() => setShowSplash(false), 4000);
     return () => clearTimeout(t);
   }, [ready]);
-
-  const savePlans = (next) => { setPlans(next); sSet("plans:v1", next); };
-  const activePlan = plans.find((p) => p.id === activePlanId);
-  const day = activePlan?.days.find((d) => d.id === dayId);
-  const dayIndex = activePlan ? activePlan.days.findIndex((d) => d.id === dayId) : -1;
+  const savePlans = next => {
+    setPlans(next);
+    sSet("plans:v1", next);
+  };
+  const activePlan = plans.find(p => p.id === activePlanId);
+  const day = activePlan?.days.find(d => d.id === dayId);
+  const dayIndex = activePlan ? activePlan.days.findIndex(d => d.id === dayId) : -1;
   const dayTitle = day ? unitTitle(dayIndex, day.label) : "";
   const exercises = day ? day.exercises : [];
   const exercise = exercises[exIdx];
-
   function updateTarget(patch) {
-    const next = plans.map((p) => p.id !== activePlanId ? p : {
-      ...p, days: p.days.map((d) => d.id !== dayId ? d : { ...d, exercises: d.exercises.map((e) => e.id !== exercise.id ? e : { ...e, ...patch }) }),
+    const next = plans.map(p => p.id !== activePlanId ? p : {
+      ...p,
+      days: p.days.map(d => d.id !== dayId ? d : {
+        ...d,
+        exercises: d.exercises.map(e => e.id !== exercise.id ? e : {
+          ...e,
+          ...patch
+        })
+      })
     });
     savePlans(next);
   }
-
   function lastActualFor(exId) {
-    for (const s of logs) { const e = s.entries.find((x) => x.exerciseId === exId); if (e && Array.isArray(e.actual) && e.actual.length) return e; }
+    for (const s of logs) {
+      const e = s.entries.find(x => x.exerciseId === exId);
+      if (e && Array.isArray(e.actual) && e.actual.length) return e;
+    }
     return null;
   }
   function initCur(ex, i) {
-    if (ex.type === "hold") return { seconds: ex.seconds, effort: "fordernd", note: "" };
+    if (ex.type === "hold") return {
+      seconds: ex.seconds,
+      effort: "fordernd",
+      note: ""
+    };
     const last = lastActualFor(ex.id);
     const la = last && last.actual[i];
-    return { reps: (la && la.reps) || ex.repsMin, weight: (la && la.weight != null) ? la.weight : ex.weight, effort: "fordernd", note: "" };
+    return {
+      reps: la && la.reps || ex.repsMin,
+      weight: la && la.weight != null ? la.weight : ex.weight,
+      effort: "fordernd",
+      note: ""
+    };
   }
-
-  function openPlan(id) { setActivePlanId(id); setView("home"); }
-  function resetWorkout() { setEntries([]); setExIdx(0); setSetIdx(0); setExDraft({ sets: [] }); setCurSet(null); setLastEntry(null); setPending(false); }
-  function goLibrary() { setActivePlanId(null); setDayId(null); resetWorkout(); setView("library"); }
-  function exitToPlanHome() { resetWorkout(); setView("home"); }
-
+  function openPlan(id) {
+    setActivePlanId(id);
+    setView("home");
+  }
+  function resetWorkout() {
+    setEntries([]);
+    setExIdx(0);
+    setSetIdx(0);
+    setExDraft({
+      sets: []
+    });
+    setCurSet(null);
+    setLastEntry(null);
+    setPending(false);
+  }
+  function goLibrary() {
+    setActivePlanId(null);
+    setDayId(null);
+    resetWorkout();
+    setView("library");
+  }
+  function exitToPlanHome() {
+    resetWorkout();
+    setView("home");
+  }
   function startDay(id, resume) {
     setDayId(id);
-    if (resume) { setEntries(resume.entries); setExIdx(resume.entries.length); setResumable(null); }
-    else { setEntries([]); setExIdx(0); sDel("active:v1"); }
+    if (resume) {
+      setEntries(resume.entries);
+      setExIdx(resume.entries.length);
+      setResumable(null);
+    } else {
+      setEntries([]);
+      setExIdx(0);
+      sDel("active:v1");
+    }
     setView("ex-overview");
   }
-
   function beginExercise() {
-    if (exercise.type === "duration") setExDraft({ elapsedSec: 0 });
-    else { setExDraft({ sets: [] }); setSetIdx(0); setCurSet(initCur(exercise, 0)); }
+    if (exercise.type === "duration") setExDraft({
+      elapsedSec: 0
+    });else {
+      setExDraft({
+        sets: []
+      });
+      setSetIdx(0);
+      setCurSet(initCur(exercise, 0));
+    }
     setView("ex-run");
   }
-
   function requestCommit(durationElapsedSec) {
-    if (exercise.type === "duration") setExDraft({ elapsedSec: durationElapsedSec || 0 });
+    if (exercise.type === "duration") setExDraft({
+      elapsedSec: durationElapsedSec || 0
+    });
     setPending(true);
   }
   function confirmCommit() {
     setPending(false);
-    if (exercise.type === "duration") { finalizeExercise(null, exDraft); return; }
+    if (exercise.type === "duration") {
+      finalizeExercise(null, exDraft);
+      return;
+    }
     const sets = [...exDraft.sets, curSet];
-    if (setIdx + 1 >= exercise.sets) finalizeExercise(sets, null);
-    else { setExDraft({ sets }); setView("set-rest"); }
+    if (setIdx + 1 >= exercise.sets) finalizeExercise(sets, null);else {
+      setExDraft({
+        sets
+      });
+      setView("set-rest");
+    }
   }
-  function nextSet() { const n = setIdx + 1; setSetIdx(n); setCurSet(initCur(exercise, n)); setView("ex-run"); }
-  function backFromSetRest() { setExDraft((prev) => ({ sets: prev.sets.slice(0, -1) })); setView("ex-run"); }
+  function nextSet() {
+    const n = setIdx + 1;
+    setSetIdx(n);
+    setCurSet(initCur(exercise, n));
+    setView("ex-run");
+  }
+  function backFromSetRest() {
+    setExDraft(prev => ({
+      sets: prev.sets.slice(0, -1)
+    }));
+    setView("ex-run");
+  }
   function backFromSet() {
-    if (exercise.type === "duration" || setIdx === 0) { setView("ex-overview"); return; }
+    if (exercise.type === "duration" || setIdx === 0) {
+      setView("ex-overview");
+      return;
+    }
     const n = setIdx - 1;
     const prev = exDraft.sets[n];
-    setExDraft((d) => ({ sets: d.sets.slice(0, -1) }));
+    setExDraft(d => ({
+      sets: d.sets.slice(0, -1)
+    }));
     setSetIdx(n);
     setCurSet(prev);
   }
-
   function finalizeExercise(sets, durationDraft) {
     let entry;
     if (exercise.type === "duration") {
       const r = durationResult(exercise.minutes, durationDraft.elapsedSec);
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "duration", target: { minutes: exercise.minutes }, actual: { seconds: r.elapsedSec, done: r.ok }, evaluation: r.ok ? "erledigt" : "verfehlt", score: null };
+      entry = {
+        exerciseId: exercise.id,
+        name: exercise.name,
+        type: "duration",
+        target: {
+          minutes: exercise.minutes
+        },
+        actual: {
+          seconds: r.elapsedSec,
+          done: r.ok
+        },
+        evaluation: r.ok ? "erledigt" : "verfehlt",
+        score: null
+      };
     } else if (exercise.type === "hold") {
       const score = scoreHold(exercise, sets);
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "hold", target: { sets: exercise.sets, seconds: exercise.seconds }, actual: sets.map((s) => ({ seconds: Number(s.seconds) || 0, effort: s.effort, note: s.note || "" })), evaluation: evalFromScore(score), score };
+      entry = {
+        exerciseId: exercise.id,
+        name: exercise.name,
+        type: "hold",
+        target: {
+          sets: exercise.sets,
+          seconds: exercise.seconds
+        },
+        actual: sets.map(s => ({
+          seconds: Number(s.seconds) || 0,
+          effort: s.effort,
+          note: s.note || ""
+        })),
+        evaluation: evalFromScore(score),
+        score
+      };
     } else {
       const score = scoreStrength(exercise, sets);
-      entry = { exerciseId: exercise.id, name: exercise.name, type: "strength", target: { sets: exercise.sets, repsMin: exercise.repsMin, repsMax: exercise.repsMax, weight: exercise.weight }, actual: sets.map((s) => ({ reps: Number(s.reps) || 0, weight: Number(s.weight) || 0, effort: s.effort, note: s.note || "" })), evaluation: evalFromScore(score), score };
+      entry = {
+        exerciseId: exercise.id,
+        name: exercise.name,
+        type: "strength",
+        target: {
+          sets: exercise.sets,
+          repsMin: exercise.repsMin,
+          repsMax: exercise.repsMax,
+          weight: exercise.weight
+        },
+        actual: sets.map(s => ({
+          reps: Number(s.reps) || 0,
+          weight: Number(s.weight) || 0,
+          effort: s.effort,
+          note: s.note || ""
+        })),
+        evaluation: evalFromScore(score),
+        score
+      };
     }
     const newEntries = [...entries, entry];
-    setEntries(newEntries); setLastEntry(entry);
-    sSet("active:v1", { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries: newEntries });
+    setEntries(newEntries);
+    setLastEntry(entry);
+    sSet("active:v1", {
+      planId: activePlanId,
+      planName: activePlan.name,
+      dayId,
+      dayName: dayTitle,
+      dateISO: new Date().toISOString(),
+      entries: newEntries
+    });
     setView("ex-result");
   }
-
-  function afterResult() { if (exIdx + 1 >= exercises.length) finishSession(); else setView("ex-rest"); }
-  function resultBack() { setEntries((prev) => prev.slice(0, -1)); setView("ex-overview"); }
-  function nextExercise() { setExIdx(exIdx + 1); setView("ex-overview"); }
-  function finishSession() {
-    const session = { planId: activePlanId, planName: activePlan.name, dayId, dayName: dayTitle, dateISO: new Date().toISOString(), entries };
-    const newLogs = [session, ...logs].slice(0, 80);
-    setLogs(newLogs); sSet("logs:v1", newLogs); sDel("active:v1"); setView("summary");
+  function afterResult() {
+    if (exIdx + 1 >= exercises.length) finishSession();else setView("ex-rest");
   }
-
-  function newPlan() { setEditorPlan({ id: uid("p_"), name: "", restCompound: 90, restIsolation: 60, exRest: 120, days: [] }); setEditorOpenDay(null); setView("editor"); }
-  function editPlan(id, openDayId) { setEditorPlan(JSON.parse(JSON.stringify(plans.find((p) => p.id === id)))); setEditorOpenDay(openDayId || null); setView("editor"); }
+  function resultBack() {
+    setEntries(prev => prev.slice(0, -1));
+    setView("ex-overview");
+  }
+  function nextExercise() {
+    setExIdx(exIdx + 1);
+    setView("ex-overview");
+  }
+  function finishSession() {
+    const session = {
+      planId: activePlanId,
+      planName: activePlan.name,
+      dayId,
+      dayName: dayTitle,
+      dateISO: new Date().toISOString(),
+      entries
+    };
+    const newLogs = [session, ...logs].slice(0, 80);
+    setLogs(newLogs);
+    sSet("logs:v1", newLogs);
+    sDel("active:v1");
+    setView("summary");
+  }
+  function newPlan() {
+    setEditorPlan({
+      id: uid("p_"),
+      name: "",
+      restCompound: 90,
+      restIsolation: 60,
+      exRest: 120,
+      days: []
+    });
+    setEditorOpenDay(null);
+    setView("editor");
+  }
+  function editPlan(id, openDayId) {
+    setEditorPlan(JSON.parse(JSON.stringify(plans.find(p => p.id === id))));
+    setEditorOpenDay(openDayId || null);
+    setView("editor");
+  }
   function duplicateUnit(did) {
-    const next = plans.map((p) => {
+    const next = plans.map(p => {
       if (p.id !== activePlanId) return p;
-      const i = p.days.findIndex((d) => d.id === did);
+      const i = p.days.findIndex(d => d.id === did);
       if (i < 0) return p;
       const src = p.days[i];
-      const copy = { ...src, id: uid("d_"), exercises: src.exercises.map((e) => ({ ...e, id: uid("e_") })) };
-      return { ...p, days: [...p.days.slice(0, i + 1), copy, ...p.days.slice(i + 1)] };
+      const copy = {
+        ...src,
+        id: uid("d_"),
+        exercises: src.exercises.map(e => ({
+          ...e,
+          id: uid("e_")
+        }))
+      };
+      return {
+        ...p,
+        days: [...p.days.slice(0, i + 1), copy, ...p.days.slice(i + 1)]
+      };
     });
     savePlans(next);
   }
-  function deleteUnit(did) { savePlans(plans.map((p) => p.id !== activePlanId ? p : { ...p, days: p.days.filter((d) => d.id !== did) })); }
-  function savePlanFromEditor(p) {
-    const exists = plans.some((x) => x.id === p.id);
-    savePlans(exists ? plans.map((x) => x.id === p.id ? p : x) : [...plans, p]);
-    setEditorPlan(null); setView("library");
+  function deleteUnit(did) {
+    savePlans(plans.map(p => p.id !== activePlanId ? p : {
+      ...p,
+      days: p.days.filter(d => d.id !== did)
+    }));
   }
-  function deletePlan(id) { savePlans(plans.filter((p) => p.id !== id)); }
+  function savePlanFromEditor(p) {
+    const exists = plans.some(x => x.id === p.id);
+    savePlans(exists ? plans.map(x => x.id === p.id ? p : x) : [...plans, p]);
+    setEditorPlan(null);
+    setView("library");
+  }
+  function deletePlan(id) {
+    savePlans(plans.filter(p => p.id !== id));
+  }
   function duplicatePlan(id) {
-    const src = plans.find((p) => p.id === id);
+    const src = plans.find(p => p.id === id);
     const copy = JSON.parse(JSON.stringify(src));
-    copy.id = uid("p_"); copy.name = src.name + " (Kopie)";
-    copy.days = copy.days.map((d) => ({ ...d, id: uid("d_"), exercises: d.exercises.map((e) => ({ ...e, id: uid("e_") })) }));
+    copy.id = uid("p_");
+    copy.name = src.name + " (Kopie)";
+    copy.days = copy.days.map(d => ({
+      ...d,
+      id: uid("d_"),
+      exercises: d.exercises.map(e => ({
+        ...e,
+        id: uid("e_")
+      }))
+    }));
     savePlans([...plans, copy]);
   }
-  function importPlan(plan) { savePlans([...plans, plan]); setView("library"); }
-
+  function importPlan(plan) {
+    savePlans([...plans, plan]);
+    setView("library");
+  }
   const inWorkout = ["ex-overview", "ex-run", "set-rest", "ex-result", "ex-rest", "summary"].includes(view);
-  const subtitle = (view === "home" || inWorkout) && activePlan ? activePlan.name
-    : view === "editor" ? "Plan-Editor" : view === "import" ? "Plan importieren"
-    : `Bibliothek · ${plans.length} ${plans.length === 1 ? "Plan" : "Pläne"}`;
-
-  if (showSplash || !ready) return <Splash />;
-
-  return (
-    <div style={{ ...body, background: C.bgGrad, color: C.text, minHeight: 600 }}>
-      <style>{`
+  const subtitle = (view === "home" || inWorkout) && activePlan ? activePlan.name : view === "editor" ? "Plan-Editor" : view === "import" ? "Plan importieren" : `Bibliothek · ${plans.length} ${plans.length === 1 ? "Plan" : "Pläne"}`;
+  if (showSplash || !ready) return /*#__PURE__*/React.createElement(Splash, null);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      background: C.bgGrad,
+      color: C.text,
+      minHeight: 600
+    }
+  }, /*#__PURE__*/React.createElement("style", null, `
         @import url('${FONT_LINK}');
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         ::selection { background: ${C.gold}; color: #000; }
@@ -581,301 +1225,1081 @@ function App() {
         .pop { animation: pop .3s cubic-bezier(.2,.8,.3,1.2) both; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance:none; margin:0; }
         textarea:focus, input:focus { border-color: ${C.gold}66; }
-      `}</style>
-
-      <div style={{ maxWidth: 460, margin: "0 auto", padding: "22px 18px 40px" }}>
-        <div className="flex items-center justify-between" style={{ marginBottom: 22 }}>
-          <div className="flex items-center gap-2">
-            <div style={{ width: 30, height: 30, borderRadius: 8, background: C.gold, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Dumbbell size={17} color="#0e0f12" />
-            </div>
-            <div>
-              <div style={{ display: "flex", alignItems: "baseline", gap: 6, lineHeight: 1 }}>
-                <span style={{ ...display, fontSize: 16, lineHeight: 1 }}>TRAINSTER</span>
-                <span style={{ ...body, fontSize: 9, color: C.muted, letterSpacing: "0.04em", whiteSpace: "nowrap", lineHeight: 1 }}>by Laurin Inc.</span>
-              </div>
-              <div style={{ ...body, fontSize: 10, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>{subtitle}</div>
-            </div>
-          </div>
-          {view === "home" && (
-            <button onClick={goLibrary} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>
-              <Library size={14} /> Bibliothek
-            </button>
-          )}
-          {inWorkout && view !== "summary" && (
-            <button onClick={exitToPlanHome} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Abbrechen</button>
-          )}
-          {(view === "editor" || view === "import") && (
-            <button onClick={() => { setEditorPlan(null); setView("library"); }} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "6px 12px", borderRadius: 8, cursor: "pointer" }}>Abbrechen</button>
-          )}
-        </div>
-
-        {view === "library" && <LibraryView plans={plans} logs={logs} onOpen={openPlan} onNew={newPlan} onImport={() => setView("import")} onEdit={editPlan} onDuplicate={duplicatePlan} onDelete={deletePlan} />}
-        {view === "editor" && editorPlan && <PlanEditor initial={editorPlan} openId={editorOpenDay} onSave={savePlanFromEditor} />}
-        {view === "import" && <ImportView onImport={importPlan} />}
-        {view === "home" && activePlan && <Home plan={activePlan} logs={logs} resumable={resumable && resumable.planId === activePlan.id ? resumable : null} onStart={startDay} onEditDay={(d) => editPlan(activePlan.id, d)} onDuplicateDay={duplicateUnit} onDeleteDay={deleteUnit} />}
-        {view === "ex-overview" && exercise && <ExOverview ex={exercise} idx={exIdx} total={exercises.length} updateTarget={updateTarget} onBack={() => setView("home")} onBegin={beginExercise} />}
-        {view === "ex-run" && exercise && <ExRun key={`${exercise.id}-${setIdx}`} ex={exercise} setIdx={setIdx} curSet={curSet} setCurSet={setCurSet} lastEntry={lastActualFor(exercise.id)} onBack={backFromSet} onCommit={requestCommit} />}
-        {view === "set-rest" && exercise && <SetRest seconds={setRestFor(activePlan, exercise)} nextLabel={`Satz ${setIdx + 2} / ${exercise.sets}`} onBack={backFromSetRest} onNext={nextSet} />}
-        {view === "ex-result" && lastEntry && <ExResult entry={lastEntry} onBack={resultBack} onNext={afterResult} isLast={exIdx + 1 >= exercises.length} />}
-        {view === "ex-rest" && <ExRest seconds={activePlan.exRest != null ? activePlan.exRest : 120} nextEx={exercises[exIdx + 1]} onBack={() => setView("ex-result")} onNext={nextExercise} />}
-        {view === "summary" && <Summary plan={activePlan} dayId={dayId} entries={entries} logs={logs} onReset={exitToPlanHome} onLibrary={goLibrary} />}
-      </div>
-
-      {pending && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}>
-          <div className="pop" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: "24px 22px", width: "100%", maxWidth: 300, textAlign: "center" }}>
-            <div style={{ ...display, fontSize: 24, marginBottom: 6 }}>Sicher?</div>
-            <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 20 }}>Eingaben werden übernommen und dokumentiert.</div>
-            <div className="flex gap-3">
-              <button onClick={() => setPending(false)} style={{ flex: 1, ...body, fontSize: 15, color: C.text, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer" }}>Nein</button>
-              <button onClick={confirmCommit} style={{ flex: 1, ...display, fontSize: 16, color: "#0e0f12", background: C.gold, border: "none", borderRadius: 12, padding: "13px", cursor: "pointer" }}>Ja</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      `), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxWidth: 460,
+      margin: "0 auto",
+      padding: "22px 18px 40px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 30,
+      height: 30,
+      borderRadius: 8,
+      background: C.gold,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center"
+    }
+  }, /*#__PURE__*/React.createElement(Dumbbell, {
+    size: 17,
+    color: "#0e0f12"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: "flex",
+      alignItems: "baseline",
+      gap: 6,
+      lineHeight: 1
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...display,
+      fontSize: 16,
+      lineHeight: 1
+    }
+  }, "TRAINSTER"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 9,
+      color: C.muted,
+      letterSpacing: "0.04em",
+      whiteSpace: "nowrap",
+      lineHeight: 1
+    }
+  }, "by Laurin Inc.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 10,
+      color: C.muted,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase"
+    }
+  }, subtitle))), view === "home" && /*#__PURE__*/React.createElement("button", {
+    onClick: goLibrary,
+    className: "flex items-center gap-1",
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      padding: "6px 12px",
+      borderRadius: 8,
+      cursor: "pointer"
+    }
+  }, /*#__PURE__*/React.createElement(Library, {
+    size: 14
+  }), " Bibliothek"), inWorkout && view !== "summary" && /*#__PURE__*/React.createElement("button", {
+    onClick: exitToPlanHome,
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      padding: "6px 12px",
+      borderRadius: 8,
+      cursor: "pointer"
+    }
+  }, "Abbrechen"), (view === "editor" || view === "import") && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setEditorPlan(null);
+      setView("library");
+    },
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      padding: "6px 12px",
+      borderRadius: 8,
+      cursor: "pointer"
+    }
+  }, "Abbrechen")), view === "library" && /*#__PURE__*/React.createElement(LibraryView, {
+    plans: plans,
+    logs: logs,
+    onOpen: openPlan,
+    onNew: newPlan,
+    onImport: () => setView("import"),
+    onEdit: editPlan,
+    onDuplicate: duplicatePlan,
+    onDelete: deletePlan
+  }), view === "editor" && editorPlan && /*#__PURE__*/React.createElement(PlanEditor, {
+    initial: editorPlan,
+    openId: editorOpenDay,
+    onSave: savePlanFromEditor
+  }), view === "import" && /*#__PURE__*/React.createElement(ImportView, {
+    onImport: importPlan
+  }), view === "home" && activePlan && /*#__PURE__*/React.createElement(Home, {
+    plan: activePlan,
+    logs: logs,
+    resumable: resumable && resumable.planId === activePlan.id ? resumable : null,
+    onStart: startDay,
+    onEditDay: d => editPlan(activePlan.id, d),
+    onDuplicateDay: duplicateUnit,
+    onDeleteDay: deleteUnit
+  }), view === "ex-overview" && exercise && /*#__PURE__*/React.createElement(ExOverview, {
+    ex: exercise,
+    idx: exIdx,
+    total: exercises.length,
+    updateTarget: updateTarget,
+    onBack: () => setView("home"),
+    onBegin: beginExercise
+  }), view === "ex-run" && exercise && /*#__PURE__*/React.createElement(ExRun, {
+    key: `${exercise.id}-${setIdx}`,
+    ex: exercise,
+    setIdx: setIdx,
+    curSet: curSet,
+    setCurSet: setCurSet,
+    lastEntry: lastActualFor(exercise.id),
+    onBack: backFromSet,
+    onCommit: requestCommit
+  }), view === "set-rest" && exercise && /*#__PURE__*/React.createElement(SetRest, {
+    seconds: setRestFor(activePlan, exercise),
+    nextLabel: `Satz ${setIdx + 2} / ${exercise.sets}`,
+    onBack: backFromSetRest,
+    onNext: nextSet
+  }), view === "ex-result" && lastEntry && /*#__PURE__*/React.createElement(ExResult, {
+    entry: lastEntry,
+    onBack: resultBack,
+    onNext: afterResult,
+    isLast: exIdx + 1 >= exercises.length
+  }), view === "ex-rest" && /*#__PURE__*/React.createElement(ExRest, {
+    seconds: activePlan.exRest != null ? activePlan.exRest : 120,
+    nextEx: exercises[exIdx + 1],
+    onBack: () => setView("ex-result"),
+    onNext: nextExercise
+  }), view === "summary" && /*#__PURE__*/React.createElement(Summary, {
+    plan: activePlan,
+    dayId: dayId,
+    entries: entries,
+    logs: logs,
+    onReset: exitToPlanHome,
+    onLibrary: goLibrary
+  })), pending && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,.62)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 50,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pop",
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 18,
+      padding: "24px 22px",
+      width: "100%",
+      maxWidth: 300,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "Sicher?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 20
+    }
+  }, "Eingaben werden übernommen und dokumentiert."), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setPending(false),
+    style: {
+      flex: 1,
+      ...body,
+      fontSize: 15,
+      color: C.text,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer"
+    }
+  }, "Nein"), /*#__PURE__*/React.createElement("button", {
+    onClick: confirmCommit,
+    style: {
+      flex: 1,
+      ...display,
+      fontSize: 16,
+      color: "#0e0f12",
+      background: C.gold,
+      border: "none",
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer"
+    }
+  }, "Ja")))));
 }
 
 /* ============================================================
    LIBRARY (Launcher)
    ============================================================ */
-function LibraryView({ plans, logs, onOpen, onNew, onImport, onEdit, onDuplicate, onDelete }) {
+function LibraryView({
+  plans,
+  logs,
+  onOpen,
+  onNew,
+  onImport,
+  onEdit,
+  onDuplicate,
+  onDelete
+}) {
   const [confirmDel, setConfirmDel] = useState(null);
-  return (
-    <div className="rise">
-      <div style={{ ...display, fontSize: 26, marginBottom: 4 }}>Meine Pläne</div>
-      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 18 }}>Plan wählen, um zu trainieren — oder einen neuen anlegen.</div>
-
-      <div className="flex flex-col gap-3" style={{ marginBottom: 18 }}>
-        {plans.length === 0 && (
-          <div style={{ ...body, fontSize: 14, color: C.muted, background: C.surface, border: `1px dashed ${C.line}`, borderRadius: 14, padding: "22px 16px", textAlign: "center" }}>
-            Noch keine Pläne. Leg einen an oder lass dir von Jarvis einen bauen und importiere ihn.
-          </div>
-        )}
-        {plans.map((p) => {
-          const lastLog = logs.find((l) => l.planId === p.id);
-          const totalEx = p.days.reduce((a, d) => a + d.exercises.length, 0);
-          return (
-            <div key={p.id} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, overflow: "hidden" }}>
-              <button onClick={() => onOpen(p.id)} className="flex items-center justify-between" style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "16px 18px 12px", cursor: "pointer", color: C.text }}>
-                <div style={{ flex: 1 }}>
-                  <div style={{ ...display, fontSize: 21, lineHeight: 1.1, marginBottom: 6 }}>{p.name || "Unbenannter Plan"}</div>
-                  <div className="flex items-center gap-3" style={{ ...body, fontSize: 12, color: C.muted }}>
-                    <span className="flex items-center gap-1"><Layers size={12} /> {p.days.length} {p.days.length === 1 ? "Einheit" : "Einheiten"}</span>
-                    <span className="flex items-center gap-1"><Dumbbell size={12} /> {totalEx} Übungen</span>
-                    {lastLog && <span>· zuletzt {lastLog.dateISO.slice(8, 10)}.{lastLog.dateISO.slice(5, 7)}.</span>}
-                  </div>
-                </div>
-                <Play size={20} color={C.gold} />
-              </button>
-              <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
-                <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => onEdit(p.id)} />
-                <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => onDuplicate(p.id)} />
-                <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDel(p.id)} />
-              </div>
-              {confirmDel === p.id && (
-                <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
-                  <span style={{ ...body, fontSize: 13, color: C.text }}>Plan wirklich löschen?</span>
-                  <div className="flex gap-2">
-                    <button onClick={() => setConfirmDel(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
-                    <button onClick={() => { onDelete(p.id); setConfirmDel(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex gap-3">
-        <button onClick={onNew} className="flex items-center justify-center gap-2" style={{ flex: 1, background: C.gold, color: "#0e0f12", border: "none", borderRadius: 14, padding: "14px", cursor: "pointer", ...display, fontSize: 15 }}>
-          <Plus size={18} /> Neuer Plan
-        </button>
-        <button onClick={onImport} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.text, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px", cursor: "pointer", ...body, fontSize: 14, fontWeight: 600 }}>
-          <Download size={16} /> Importieren
-        </button>
-      </div>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 26,
+      marginBottom: 4
+    }
+  }, "Meine Pläne"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 18
+    }
+  }, "Plan wählen, um zu trainieren — oder einen neuen anlegen."), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col gap-3",
+    style: {
+      marginBottom: 18
+    }
+  }, plans.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.muted,
+      background: C.surface,
+      border: `1px dashed ${C.line}`,
+      borderRadius: 14,
+      padding: "22px 16px",
+      textAlign: "center"
+    }
+  }, "Noch keine Pläne. Leg einen an oder lass dir von Jarvis einen bauen und importiere ihn."), plans.map(p => {
+    const lastLog = logs.find(l => l.planId === p.id);
+    const totalEx = p.days.reduce((a, d) => a + d.exercises.length, 0);
+    return /*#__PURE__*/React.createElement("div", {
+      key: p.id,
+      style: {
+        background: C.surface,
+        border: `1px solid ${C.line}`,
+        borderRadius: 16,
+        overflow: "hidden"
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => onOpen(p.id),
+      className: "flex items-center justify-between",
+      style: {
+        width: "100%",
+        textAlign: "left",
+        background: "transparent",
+        border: "none",
+        padding: "16px 18px 12px",
+        cursor: "pointer",
+        color: C.text
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...display,
+        fontSize: 21,
+        lineHeight: 1.1,
+        marginBottom: 6
+      }
+    }, p.name || "Unbenannter Plan"), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3",
+      style: {
+        ...body,
+        fontSize: 12,
+        color: C.muted
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      className: "flex items-center gap-1"
+    }, /*#__PURE__*/React.createElement(Layers, {
+      size: 12
+    }), " ", p.days.length, " ", p.days.length === 1 ? "Einheit" : "Einheiten"), /*#__PURE__*/React.createElement("span", {
+      className: "flex items-center gap-1"
+    }, /*#__PURE__*/React.createElement(Dumbbell, {
+      size: 12
+    }), " ", totalEx, " Übungen"), lastLog && /*#__PURE__*/React.createElement("span", null, "· zuletzt ", lastLog.dateISO.slice(8, 10), ".", lastLog.dateISO.slice(5, 7), "."))), /*#__PURE__*/React.createElement(Play, {
+      size: 20,
+      color: C.gold
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center",
+      style: {
+        borderTop: `1px solid ${C.line}`
+      }
+    }, /*#__PURE__*/React.createElement(ActBtn, {
+      icon: Pencil,
+      label: "Bearbeiten",
+      onClick: () => onEdit(p.id)
+    }), /*#__PURE__*/React.createElement(ActBtn, {
+      icon: CopyPlus,
+      label: "Duplizieren",
+      onClick: () => onDuplicate(p.id)
+    }), /*#__PURE__*/React.createElement(ActBtn, {
+      icon: Trash2,
+      label: "Löschen",
+      danger: true,
+      onClick: () => setConfirmDel(p.id)
+    })), confirmDel === p.id && /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between",
+      style: {
+        background: C.claySoft,
+        padding: "10px 14px",
+        borderTop: `1px solid ${C.clay}44`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...body,
+        fontSize: 13,
+        color: C.text
+      }
+    }, "Plan wirklich löschen?"), /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-2"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setConfirmDel(null),
+      style: {
+        ...body,
+        fontSize: 12,
+        color: C.muted,
+        background: "transparent",
+        border: `1px solid ${C.line}`,
+        padding: "5px 12px",
+        borderRadius: 8,
+        cursor: "pointer"
+      }
+    }, "Nein"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        onDelete(p.id);
+        setConfirmDel(null);
+      },
+      style: {
+        ...body,
+        fontSize: 12,
+        color: "#0e0f12",
+        background: C.clay,
+        border: "none",
+        padding: "5px 12px",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "Löschen"))));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onNew,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      flex: 1,
+      background: C.gold,
+      color: "#0e0f12",
+      border: "none",
+      borderRadius: 14,
+      padding: "14px",
+      cursor: "pointer",
+      ...display,
+      fontSize: 15
+    }
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 18
+  }), " Neuer Plan"), /*#__PURE__*/React.createElement("button", {
+    onClick: onImport,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      flex: 1,
+      background: "transparent",
+      color: C.text,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      padding: "14px",
+      cursor: "pointer",
+      ...body,
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, /*#__PURE__*/React.createElement(Download, {
+    size: 16
+  }), " Importieren")));
 }
-function ActBtn({ icon: Icon, label, onClick, danger }) {
-  return (
-    <button onClick={onClick} className="flex items-center justify-center gap-1" style={{ flex: 1, background: "transparent", border: "none", padding: "11px 0", cursor: "pointer", color: danger ? C.clay : C.muted, ...body, fontSize: 12 }}>
-      <Icon size={14} /> {label}
-    </button>
-  );
+function ActBtn({
+  icon: Icon,
+  label,
+  onClick,
+  danger
+}) {
+  return /*#__PURE__*/React.createElement("button", {
+    onClick: onClick,
+    className: "flex items-center justify-center gap-1",
+    style: {
+      flex: 1,
+      background: "transparent",
+      border: "none",
+      padding: "11px 0",
+      cursor: "pointer",
+      color: danger ? C.clay : C.muted,
+      ...body,
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    size: 14
+  }), " ", label);
 }
 
 /* ============================================================
    PLAN-EDITOR
    ============================================================ */
-function PlanEditor({ initial, openId, onSave }) {
+function PlanEditor({
+  initial,
+  openId,
+  onSave
+}) {
   const [plan, setPlan] = useState(initial);
   const [openDay, setOpenDay] = useState(openId || null);
   const [adding, setAdding] = useState(null); // dayId für offenes Übungsformular
   const [confirmDelDay, setConfirmDelDay] = useState(null);
-
-  const setName = (name) => setPlan({ ...plan, name });
-  const addDay = () => { const d = { id: uid("d_"), label: "", exercises: [] }; setPlan({ ...plan, days: [...plan.days, d] }); setOpenDay(d.id); };
-  const setLabel = (id, label) => setPlan({ ...plan, days: plan.days.map((d) => d.id === id ? { ...d, label } : d) });
-  const delDay = (id) => setPlan({ ...plan, days: plan.days.filter((d) => d.id !== id) });
-  const duplicateDay = (id) => {
-    const i = plan.days.findIndex((d) => d.id === id);
+  const setName = name => setPlan({
+    ...plan,
+    name
+  });
+  const addDay = () => {
+    const d = {
+      id: uid("d_"),
+      label: "",
+      exercises: []
+    };
+    setPlan({
+      ...plan,
+      days: [...plan.days, d]
+    });
+    setOpenDay(d.id);
+  };
+  const setLabel = (id, label) => setPlan({
+    ...plan,
+    days: plan.days.map(d => d.id === id ? {
+      ...d,
+      label
+    } : d)
+  });
+  const delDay = id => setPlan({
+    ...plan,
+    days: plan.days.filter(d => d.id !== id)
+  });
+  const duplicateDay = id => {
+    const i = plan.days.findIndex(d => d.id === id);
     if (i < 0) return;
     const src = plan.days[i];
-    const copy = { ...src, id: uid("d_"), exercises: src.exercises.map((e) => ({ ...e, id: uid("e_") })) };
-    setPlan({ ...plan, days: [...plan.days.slice(0, i + 1), copy, ...plan.days.slice(i + 1)] });
+    const copy = {
+      ...src,
+      id: uid("d_"),
+      exercises: src.exercises.map(e => ({
+        ...e,
+        id: uid("e_")
+      }))
+    };
+    setPlan({
+      ...plan,
+      days: [...plan.days.slice(0, i + 1), copy, ...plan.days.slice(i + 1)]
+    });
     setOpenDay(copy.id);
   };
-  const addExercise = (dayId, ex) => setPlan({ ...plan, days: plan.days.map((d) => d.id === dayId ? { ...d, exercises: [...d.exercises, { ...ex, id: uid("e_") }] } : d) });
-  const delExercise = (dayId, exId) => setPlan({ ...plan, days: plan.days.map((d) => d.id === dayId ? { ...d, exercises: d.exercises.filter((e) => e.id !== exId) } : d) });
-
-  const canSave = plan.name.trim() && plan.days.length > 0 && plan.days.every((d) => d.exercises.length > 0);
-
-  return (
-    <div className="rise">
-      <label style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Plan-Name</label>
-      <input value={plan.name} onChange={(e) => setName(e.target.value)} placeholder="z. B. Push/Pull/Beine" style={{ ...inputStyle, marginTop: 6, marginBottom: 14, ...display, fontSize: 20 }} />
-
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "12px 16px", marginBottom: 18 }}>
-        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Pausen (Standard)</div>
-        <div className="flex items-center justify-between" style={{ marginTop: 10 }}>
-          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Satzpause · Compound</div><div style={{ ...body, fontSize: 11, color: C.muted }}>Verbundübungen</div></div>
-          <Stepper value={plan.restCompound != null ? plan.restCompound : 90} step={5} min={0} onChange={(v) => setPlan({ ...plan, restCompound: v })} suffix="s" />
-        </div>
-        <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
-          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Satzpause · Isolation</div><div style={{ ...body, fontSize: 11, color: C.muted }}>Isolationsübungen</div></div>
-          <Stepper value={plan.restIsolation != null ? plan.restIsolation : 60} step={5} min={0} onChange={(v) => setPlan({ ...plan, restIsolation: v })} suffix="s" />
-        </div>
-        <div className="flex items-center justify-between" style={{ marginTop: 12 }}>
-          <div><div style={{ ...body, fontSize: 14, color: C.text }}>Übungspause</div><div style={{ ...body, fontSize: 11, color: C.muted }}>zwischen den Übungen</div></div>
-          <Stepper value={plan.exRest != null ? plan.exRest : 120} step={10} min={0} onChange={(v) => setPlan({ ...plan, exRest: v })} suffix="s" />
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-3">
-        {plan.days.map((d, i) => (
-          <div key={d.id} style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, overflow: "hidden" }}>
-            <div className="flex items-center gap-2" style={{ padding: "12px 14px" }}>
-              <button onClick={() => setOpenDay(openDay === d.id ? null : d.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.muted, display: "flex" }}>
-                <ChevronDown size={18} style={{ transform: openDay === d.id ? "none" : "rotate(-90deg)", transition: "transform .2s" }} />
-              </button>
-              <span style={{ ...display, fontSize: 17, color: C.text, whiteSpace: "nowrap" }}>Einheit {i + 1}</span>
-              <span style={{ color: C.muted }}>·</span>
-              <input value={d.label || ""} onChange={(e) => setLabel(d.id, e.target.value)} placeholder="Bezeichnung (optional)" style={{ ...inputStyle, flex: 1, padding: "7px 10px", border: "none", background: "transparent", ...body, fontSize: 14 }} />
-              <span style={{ ...body, fontSize: 12, color: C.muted }}>{d.exercises.length}</span>
-            </div>
-            <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
-              <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => setOpenDay(openDay === d.id ? null : d.id)} />
-              <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => duplicateDay(d.id)} />
-              <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDelDay(d.id)} />
-            </div>
-            {confirmDelDay === d.id && (
-              <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
-                <span style={{ ...body, fontSize: 13, color: C.text }}>Einheit wirklich löschen?</span>
-                <div className="flex gap-2">
-                  <button onClick={() => setConfirmDelDay(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
-                  <button onClick={() => { delDay(d.id); setConfirmDelDay(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
-                </div>
-              </div>
-            )}
-            {openDay === d.id && (
-              <div style={{ padding: "0 14px 14px" }}>
-                {d.exercises.map((e) => (
-                  <div key={e.id} className="flex items-center justify-between" style={{ padding: "8px 0", borderTop: `1px solid ${C.line}` }}>
-                    <div>
-                      <div style={{ ...body, fontSize: 14 }}>{e.name}</div>
-                      <div style={{ ...body, fontSize: 11, color: C.muted }}>
-                        {e.type === "strength" ? `${e.sets}×${e.repsMin}–${e.repsMax} @ ${e.weight}kg` : e.type === "hold" ? `${e.sets}× ${e.seconds}s` : `${e.minutes} min`}
-                      </div>
-                    </div>
-                    <button onClick={() => delExercise(d.id, e.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: C.muted, display: "flex" }}><X size={16} /></button>
-                  </div>
-                ))}
-                {adding === d.id
-                  ? <ExerciseForm onAdd={(ex) => { addExercise(d.id, ex); }} onClose={() => setAdding(null)} />
-                  : <button onClick={() => setAdding(d.id)} className="flex items-center justify-center gap-1" style={{ width: "100%", marginTop: 10, background: C.surface2, color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px", cursor: "pointer", ...body, fontSize: 13 }}><Plus size={15} /> Übung hinzufügen</button>}
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-
-      <button onClick={addDay} className="flex items-center justify-center gap-1" style={{ width: "100%", marginTop: 12, background: "transparent", color: C.muted, border: `1px dashed ${C.line}`, borderRadius: 12, padding: "12px", cursor: "pointer", ...body, fontSize: 13 }}><Plus size={15} /> Einheit hinzufügen</button>
-
-      <button disabled={!canSave} onClick={() => onSave(plan)} className="flex items-center justify-center gap-2" style={{ width: "100%", marginTop: 18, background: canSave ? C.gold : C.surface2, color: canSave ? "#0e0f12" : C.muted, border: "none", borderRadius: 14, padding: "16px", cursor: canSave ? "pointer" : "default", ...display, fontSize: 17 }}>
-        <Check size={18} /> Plan speichern
-      </button>
-      {!canSave && <div style={{ ...body, fontSize: 12, color: C.muted, textAlign: "center", marginTop: 8 }}>Name, mindestens eine Einheit, und jede Einheit braucht mindestens eine Übung.</div>}
-    </div>
-  );
+  const addExercise = (dayId, ex) => setPlan({
+    ...plan,
+    days: plan.days.map(d => d.id === dayId ? {
+      ...d,
+      exercises: [...d.exercises, {
+        ...ex,
+        id: uid("e_")
+      }]
+    } : d)
+  });
+  const delExercise = (dayId, exId) => setPlan({
+    ...plan,
+    days: plan.days.map(d => d.id === dayId ? {
+      ...d,
+      exercises: d.exercises.filter(e => e.id !== exId)
+    } : d)
+  });
+  const canSave = plan.name.trim() && plan.days.length > 0 && plan.days.every(d => d.exercises.length > 0);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em"
+    }
+  }, "Plan-Name"), /*#__PURE__*/React.createElement("input", {
+    value: plan.name,
+    onChange: e => setName(e.target.value),
+    placeholder: "z. B. Push/Pull/Beine",
+    style: {
+      ...inputStyle,
+      marginTop: 6,
+      marginBottom: 14,
+      ...display,
+      fontSize: 20
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      padding: "12px 16px",
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em"
+    }
+  }, "Pausen (Standard)"), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.text
+    }
+  }, "Satzpause · Compound"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted
+    }
+  }, "Verbundübungen")), /*#__PURE__*/React.createElement(Stepper, {
+    value: plan.restCompound != null ? plan.restCompound : 90,
+    step: 5,
+    min: 0,
+    onChange: v => setPlan({
+      ...plan,
+      restCompound: v
+    }),
+    suffix: "s"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.text
+    }
+  }, "Satzpause · Isolation"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted
+    }
+  }, "Isolationsübungen")), /*#__PURE__*/React.createElement(Stepper, {
+    value: plan.restIsolation != null ? plan.restIsolation : 60,
+    step: 5,
+    min: 0,
+    onChange: v => setPlan({
+      ...plan,
+      restIsolation: v
+    }),
+    suffix: "s"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginTop: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.text
+    }
+  }, "Übungspause"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted
+    }
+  }, "zwischen den Übungen")), /*#__PURE__*/React.createElement(Stepper, {
+    value: plan.exRest != null ? plan.exRest : 120,
+    step: 10,
+    min: 0,
+    onChange: v => setPlan({
+      ...plan,
+      exRest: v
+    }),
+    suffix: "s"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col gap-3"
+  }, plan.days.map((d, i) => /*#__PURE__*/React.createElement("div", {
+    key: d.id,
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      overflow: "hidden"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2",
+    style: {
+      padding: "12px 14px"
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpenDay(openDay === d.id ? null : d.id),
+    style: {
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      color: C.muted,
+      display: "flex"
+    }
+  }, /*#__PURE__*/React.createElement(ChevronDown, {
+    size: 18,
+    style: {
+      transform: openDay === d.id ? "none" : "rotate(-90deg)",
+      transition: "transform .2s"
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...display,
+      fontSize: 17,
+      color: C.text,
+      whiteSpace: "nowrap"
+    }
+  }, "Einheit ", i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.muted
+    }
+  }, "·"), /*#__PURE__*/React.createElement("input", {
+    value: d.label || "",
+    onChange: e => setLabel(d.id, e.target.value),
+    placeholder: "Bezeichnung (optional)",
+    style: {
+      ...inputStyle,
+      flex: 1,
+      padding: "7px 10px",
+      border: "none",
+      background: "transparent",
+      ...body,
+      fontSize: 14
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted
+    }
+  }, d.exercises.length)), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center",
+    style: {
+      borderTop: `1px solid ${C.line}`
+    }
+  }, /*#__PURE__*/React.createElement(ActBtn, {
+    icon: Pencil,
+    label: "Bearbeiten",
+    onClick: () => setOpenDay(openDay === d.id ? null : d.id)
+  }), /*#__PURE__*/React.createElement(ActBtn, {
+    icon: CopyPlus,
+    label: "Duplizieren",
+    onClick: () => duplicateDay(d.id)
+  }), /*#__PURE__*/React.createElement(ActBtn, {
+    icon: Trash2,
+    label: "Löschen",
+    danger: true,
+    onClick: () => setConfirmDelDay(d.id)
+  })), confirmDelDay === d.id && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      background: C.claySoft,
+      padding: "10px 14px",
+      borderTop: `1px solid ${C.clay}44`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.text
+    }
+  }, "Einheit wirklich löschen?"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDelDay(null),
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      padding: "5px 12px",
+      borderRadius: 8,
+      cursor: "pointer"
+    }
+  }, "Nein"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      delDay(d.id);
+      setConfirmDelDay(null);
+    },
+    style: {
+      ...body,
+      fontSize: 12,
+      color: "#0e0f12",
+      background: C.clay,
+      border: "none",
+      padding: "5px 12px",
+      borderRadius: 8,
+      cursor: "pointer",
+      fontWeight: 600
+    }
+  }, "Löschen"))), openDay === d.id && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: "0 14px 14px"
+    }
+  }, d.exercises.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.id,
+    className: "flex items-center justify-between",
+    style: {
+      padding: "8px 0",
+      borderTop: `1px solid ${C.line}`
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14
+    }
+  }, e.name), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted
+    }
+  }, e.type === "strength" ? `${e.sets}×${e.repsMin}–${e.repsMax} @ ${e.weight}kg` : e.type === "hold" ? `${e.sets}× ${e.seconds}s` : `${e.minutes} min`)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => delExercise(d.id, e.id),
+    style: {
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      color: C.muted,
+      display: "flex"
+    }
+  }, /*#__PURE__*/React.createElement(X, {
+    size: 16
+  })))), adding === d.id ? /*#__PURE__*/React.createElement(ExerciseForm, {
+    onAdd: ex => {
+      addExercise(d.id, ex);
+    },
+    onClose: () => setAdding(null)
+  }) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAdding(d.id),
+    className: "flex items-center justify-center gap-1",
+    style: {
+      width: "100%",
+      marginTop: 10,
+      background: C.surface2,
+      color: C.text,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: "10px",
+      cursor: "pointer",
+      ...body,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 15
+  }), " Übung hinzufügen"))))), /*#__PURE__*/React.createElement("button", {
+    onClick: addDay,
+    className: "flex items-center justify-center gap-1",
+    style: {
+      width: "100%",
+      marginTop: 12,
+      background: "transparent",
+      color: C.muted,
+      border: `1px dashed ${C.line}`,
+      borderRadius: 12,
+      padding: "12px",
+      cursor: "pointer",
+      ...body,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 15
+  }), " Einheit hinzufügen"), /*#__PURE__*/React.createElement("button", {
+    disabled: !canSave,
+    onClick: () => onSave(plan),
+    className: "flex items-center justify-center gap-2",
+    style: {
+      width: "100%",
+      marginTop: 18,
+      background: canSave ? C.gold : C.surface2,
+      color: canSave ? "#0e0f12" : C.muted,
+      border: "none",
+      borderRadius: 14,
+      padding: "16px",
+      cursor: canSave ? "pointer" : "default",
+      ...display,
+      fontSize: 17
+    }
+  }, /*#__PURE__*/React.createElement(Check, {
+    size: 18
+  }), " Plan speichern"), !canSave && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      textAlign: "center",
+      marginTop: 8
+    }
+  }, "Name, mindestens eine Einheit, und jede Einheit braucht mindestens eine Übung."));
 }
-
-function ExerciseForm({ onAdd, onClose }) {
+function ExerciseForm({
+  onAdd,
+  onClose
+}) {
   const [type, setType] = useState("strength");
-  const [f, setF] = useState({ name: "", desc: "", hint: "", category: "compound", sets: 3, repsMin: 8, repsMax: 12, weight: 0, minutes: 10, seconds: 30, optional: false });
-  const set = (k, v) => setF({ ...f, [k]: v });
+  const [f, setF] = useState({
+    name: "",
+    desc: "",
+    hint: "",
+    category: "compound",
+    sets: 3,
+    repsMin: 8,
+    repsMax: 12,
+    weight: 0,
+    minutes: 10,
+    seconds: 30,
+    optional: false
+  });
+  const set = (k, v) => setF({
+    ...f,
+    [k]: v
+  });
   const types = [["strength", "Kraft"], ["duration", "Cardio"], ["hold", "Halten"]];
   function realSubmit(addanother) {
     if (!f.name.trim()) return;
-    let ex = { type, name: f.name.trim(), desc: f.desc.trim(), hint: f.hint.trim() };
-    if (type === "strength") ex = { ...ex, category: f.category, optional: f.optional, sets: f.sets, repsMin: f.repsMin, repsMax: f.repsMax, weight: f.weight };
-    else if (type === "hold") ex = { ...ex, category: "isolation", sets: f.sets, seconds: f.seconds };
-    else ex = { ...ex, minutes: f.minutes };
+    let ex = {
+      type,
+      name: f.name.trim(),
+      desc: f.desc.trim(),
+      hint: f.hint.trim()
+    };
+    if (type === "strength") ex = {
+      ...ex,
+      category: f.category,
+      optional: f.optional,
+      sets: f.sets,
+      repsMin: f.repsMin,
+      repsMax: f.repsMax,
+      weight: f.weight
+    };else if (type === "hold") ex = {
+      ...ex,
+      category: "isolation",
+      sets: f.sets,
+      seconds: f.seconds
+    };else ex = {
+      ...ex,
+      minutes: f.minutes
+    };
     onAdd(ex);
-    setF({ ...f, name: "", desc: "", hint: "" });
+    setF({
+      ...f,
+      name: "",
+      desc: "",
+      hint: ""
+    });
     if (!addanother) onClose();
   }
-  const FieldRow = ({ label, children }) => (
-    <div className="flex items-center justify-between" style={{ marginBottom: 10 }}>
-      <span style={{ ...body, fontSize: 13, color: C.muted }}>{label}</span>{children}
-    </div>
-  );
-  return (
-    <div style={{ background: C.surface2, border: `1px solid ${C.gold}33`, borderRadius: 12, padding: 14, marginTop: 10 }}>
-      <div className="flex gap-2" style={{ marginBottom: 12 }}>
-        {types.map(([t, l]) => (
-          <button key={t} onClick={() => setType(t)} style={{ flex: 1, ...body, fontSize: 12, fontWeight: 600, padding: "7px 0", borderRadius: 8, cursor: "pointer", border: `1px solid ${type === t ? C.gold : C.line}`, background: type === t ? C.goldSoft : "transparent", color: type === t ? C.gold : C.muted }}>{l}</button>
-        ))}
-      </div>
-      <input value={f.name} onChange={(e) => set("name", e.target.value)} placeholder="Übungsname" style={{ ...inputStyle, marginBottom: 10 }} />
-      {type === "strength" && (
-        <>
-          <FieldRow label="Sätze"><Stepper value={f.sets} min={1} onChange={(v) => set("sets", v)} /></FieldRow>
-          <FieldRow label="Wdh. min"><Stepper value={f.repsMin} min={1} onChange={(v) => set("repsMin", v)} /></FieldRow>
-          <FieldRow label="Wdh. max"><Stepper value={f.repsMax} min={1} onChange={(v) => set("repsMax", v)} /></FieldRow>
-          <FieldRow label="Gewicht"><Stepper value={f.weight} step={2.5} onChange={(v) => set("weight", v)} suffix="kg" /></FieldRow>
-          <FieldRow label="Kategorie">
-            <div className="flex gap-1">
-              {[["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => (
-                <button key={c} onClick={() => set("category", c)} style={{ ...body, fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 7, cursor: "pointer", border: `1px solid ${f.category === c ? C.gold : C.line}`, background: f.category === c ? C.goldSoft : "transparent", color: f.category === c ? C.gold : C.muted }}>{l}</button>
-              ))}
-            </div>
-          </FieldRow>
-        </>
-      )}
-      {type === "hold" && (
-        <>
-          <FieldRow label="Sätze"><Stepper value={f.sets} min={1} onChange={(v) => set("sets", v)} /></FieldRow>
-          <FieldRow label="Sekunden"><Stepper value={f.seconds} step={5} onChange={(v) => set("seconds", v)} suffix="s" /></FieldRow>
-        </>
-      )}
-      {type === "duration" && <FieldRow label="Dauer"><Stepper value={f.minutes} step={5} onChange={(v) => set("minutes", v)} suffix="min" /></FieldRow>}
-      <input value={f.hint} onChange={(e) => set("hint", e.target.value)} placeholder="Hinweis (optional)" style={{ ...inputStyle, marginTop: 4, marginBottom: 12, fontSize: 13 }} />
-      <div className="flex gap-2">
-        <button onClick={() => realSubmit(true)} style={{ flex: 1, ...body, fontSize: 13, fontWeight: 600, background: C.gold, color: "#0e0f12", border: "none", borderRadius: 10, padding: "10px", cursor: "pointer" }}>+ Hinzufügen</button>
-        <button onClick={() => realSubmit(false)} style={{ flex: 1, ...body, fontSize: 13, background: "transparent", color: C.text, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px", cursor: "pointer" }}>Fertig</button>
-      </div>
-    </div>
-  );
+  const FieldRow = ({
+    label,
+    children
+  }) => /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted
+    }
+  }, label), children);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface2,
+      border: `1px solid ${C.gold}33`,
+      borderRadius: 12,
+      padding: 14,
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2",
+    style: {
+      marginBottom: 12
+    }
+  }, types.map(([t, l]) => /*#__PURE__*/React.createElement("button", {
+    key: t,
+    onClick: () => setType(t),
+    style: {
+      flex: 1,
+      ...body,
+      fontSize: 12,
+      fontWeight: 600,
+      padding: "7px 0",
+      borderRadius: 8,
+      cursor: "pointer",
+      border: `1px solid ${type === t ? C.gold : C.line}`,
+      background: type === t ? C.goldSoft : "transparent",
+      color: type === t ? C.gold : C.muted
+    }
+  }, l))), /*#__PURE__*/React.createElement("input", {
+    value: f.name,
+    onChange: e => set("name", e.target.value),
+    placeholder: "Übungsname",
+    style: {
+      ...inputStyle,
+      marginBottom: 10
+    }
+  }), type === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Sätze"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.sets,
+    min: 1,
+    onChange: v => set("sets", v)
+  })), /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Wdh. min"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.repsMin,
+    min: 1,
+    onChange: v => set("repsMin", v)
+  })), /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Wdh. max"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.repsMax,
+    min: 1,
+    onChange: v => set("repsMax", v)
+  })), /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Gewicht"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.weight,
+    step: 2.5,
+    onChange: v => set("weight", v),
+    suffix: "kg"
+  })), /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Kategorie"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1"
+  }, [["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => /*#__PURE__*/React.createElement("button", {
+    key: c,
+    onClick: () => set("category", c),
+    style: {
+      ...body,
+      fontSize: 12,
+      fontWeight: 600,
+      padding: "5px 11px",
+      borderRadius: 7,
+      cursor: "pointer",
+      border: `1px solid ${f.category === c ? C.gold : C.line}`,
+      background: f.category === c ? C.goldSoft : "transparent",
+      color: f.category === c ? C.gold : C.muted
+    }
+  }, l))))), type === "hold" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Sätze"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.sets,
+    min: 1,
+    onChange: v => set("sets", v)
+  })), /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Sekunden"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.seconds,
+    step: 5,
+    onChange: v => set("seconds", v),
+    suffix: "s"
+  }))), type === "duration" && /*#__PURE__*/React.createElement(FieldRow, {
+    label: "Dauer"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: f.minutes,
+    step: 5,
+    onChange: v => set("minutes", v),
+    suffix: "min"
+  })), /*#__PURE__*/React.createElement("input", {
+    value: f.hint,
+    onChange: e => set("hint", e.target.value),
+    placeholder: "Hinweis (optional)",
+    style: {
+      ...inputStyle,
+      marginTop: 4,
+      marginBottom: 12,
+      fontSize: 13
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => realSubmit(true),
+    style: {
+      flex: 1,
+      ...body,
+      fontSize: 13,
+      fontWeight: 600,
+      background: C.gold,
+      color: "#0e0f12",
+      border: "none",
+      borderRadius: 10,
+      padding: "10px",
+      cursor: "pointer"
+    }
+  }, "+ Hinzufügen"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => realSubmit(false),
+    style: {
+      flex: 1,
+      ...body,
+      fontSize: 13,
+      background: "transparent",
+      color: C.text,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: "10px",
+      cursor: "pointer"
+    }
+  }, "Fertig")));
 }
 
 /* ============================================================
    IMPORT
    ============================================================ */
-function ImportView({ onImport }) {
+function ImportView({
+  onImport
+}) {
   const [raw, setRaw] = useState("");
   const [err, setErr] = useState("");
   const example = `{
@@ -889,449 +2313,1660 @@ function ImportView({ onImport }) {
   ]
 }`;
   function go() {
-    const { plan, error } = parsePlan(raw);
-    if (error) { setErr(error); return; }
+    const {
+      plan,
+      error
+    } = parsePlan(raw);
+    if (error) {
+      setErr(error);
+      return;
+    }
     onImport(plan);
   }
-  return (
-    <div className="rise">
-      <div style={{ ...display, fontSize: 24, marginBottom: 6 }}>Plan importieren</div>
-      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 14 }}>
-        Lass dir von Jarvis im Chat einen Plan im JSON-Format bauen, füg ihn hier ein und importiere ihn mit einem Tap.
-      </div>
-      <textarea value={raw} onChange={(e) => { setRaw(e.target.value); setErr(""); }} placeholder="JSON hier einfügen…"
-        style={{ ...inputStyle, height: 180, ...body, fontSize: 12, resize: "vertical" }} />
-      {err && <div style={{ ...body, fontSize: 13, color: C.clay, marginTop: 8 }}>{err}</div>}
-      <button onClick={go} disabled={!raw.trim()} className="flex items-center justify-center gap-2" style={{ width: "100%", marginTop: 14, background: raw.trim() ? C.gold : C.surface2, color: raw.trim() ? "#0e0f12" : C.muted, border: "none", borderRadius: 14, padding: "15px", cursor: raw.trim() ? "pointer" : "default", ...display, fontSize: 16 }}>
-        <Download size={17} /> Importieren
-      </button>
-      <details style={{ marginTop: 18 }}>
-        <summary style={{ ...body, fontSize: 12, color: C.gold, cursor: "pointer" }}>Format-Beispiel anzeigen</summary>
-        <pre style={{ ...body, fontSize: 11, color: C.muted, background: C.bg, border: `1px solid ${C.line}`, borderRadius: 10, padding: 12, marginTop: 8, overflowX: "auto", whiteSpace: "pre" }}>{example}</pre>
-      </details>
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 24,
+      marginBottom: 6
+    }
+  }, "Plan importieren"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 14
+    }
+  }, "Lass dir von Jarvis im Chat einen Plan im JSON-Format bauen, füg ihn hier ein und importiere ihn mit einem Tap."), /*#__PURE__*/React.createElement("textarea", {
+    value: raw,
+    onChange: e => {
+      setRaw(e.target.value);
+      setErr("");
+    },
+    placeholder: "JSON hier einfügen…",
+    style: {
+      ...inputStyle,
+      height: 180,
+      ...body,
+      fontSize: 12,
+      resize: "vertical"
+    }
+  }), err && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.clay,
+      marginTop: 8
+    }
+  }, err), /*#__PURE__*/React.createElement("button", {
+    onClick: go,
+    disabled: !raw.trim(),
+    className: "flex items-center justify-center gap-2",
+    style: {
+      width: "100%",
+      marginTop: 14,
+      background: raw.trim() ? C.gold : C.surface2,
+      color: raw.trim() ? "#0e0f12" : C.muted,
+      border: "none",
+      borderRadius: 14,
+      padding: "15px",
+      cursor: raw.trim() ? "pointer" : "default",
+      ...display,
+      fontSize: 16
+    }
+  }, /*#__PURE__*/React.createElement(Download, {
+    size: 17
+  }), " Importieren"), /*#__PURE__*/React.createElement("details", {
+    style: {
+      marginTop: 18
+    }
+  }, /*#__PURE__*/React.createElement("summary", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.gold,
+      cursor: "pointer"
+    }
+  }, "Format-Beispiel anzeigen"), /*#__PURE__*/React.createElement("pre", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      background: C.bg,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: 12,
+      marginTop: 8,
+      overflowX: "auto",
+      whiteSpace: "pre"
+    }
+  }, example)));
 }
 
 /* ============================================================
    HOME (Tag-Auswahl eines Plans)
    ============================================================ */
-function Home({ plan, logs, resumable, onStart, onEditDay, onDuplicateDay, onDeleteDay }) {
+function Home({
+  plan,
+  logs,
+  resumable,
+  onStart,
+  onEditDay,
+  onDuplicateDay,
+  onDeleteDay
+}) {
   const [confirmDel, setConfirmDel] = useState(null);
-  const planLogs = logs.filter((l) => l.planId === plan.id);
+  const planLogs = logs.filter(l => l.planId === plan.id);
   const last = planLogs[0];
-  const order = plan.days.map((d) => d.id);
+  const order = plan.days.map(d => d.id);
   const suggestedDay = last ? order[(order.indexOf(last.dayId) + 1) % order.length] : order[0];
-  return (
-    <div className="rise">
-      {resumable && (
-        <button onClick={() => onStart(resumable.dayId, resumable)} className="flex items-center justify-between" style={{ width: "100%", background: C.goldSoft, border: `1px solid ${C.gold}55`, borderRadius: 14, padding: "14px 16px", marginBottom: 16, cursor: "pointer", color: C.text }}>
-          <div className="text-left">
-            <div style={{ ...body, fontSize: 11, color: C.gold, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase" }}>Offene Einheit</div>
-            <div style={{ ...body, fontSize: 14 }}>{resumable.dayName} — {resumable.entries.length} Übungen erfasst</div>
-          </div>
-          <Play size={20} color={C.gold} />
-        </button>
-      )}
-      <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 14 }}>
-        {last ? `Zuletzt: ${last.dayName.split("·")[0].trim()} am ${last.dateISO.slice(8, 10)}.${last.dateISO.slice(5, 7)}. — heute dran:` : "Wähle deine Einheit:"}
-      </div>
-      <div className="flex flex-col gap-3">
-        {plan.days.length === 0 && (
-          <div style={{ ...body, fontSize: 14, color: C.muted, background: C.surface, border: `1px dashed ${C.line}`, borderRadius: 14, padding: "20px 16px", textAlign: "center" }}>
-            Keine Einheiten mehr in diesem Plan. Über „Bibliothek → Bearbeiten" eine neue Einheit hinzufügen.
-          </div>
-        )}
-        {plan.days.map((d, i) => {
-          const isSug = d.id === suggestedDay && plan.days.length > 1;
-          const strength = d.exercises.filter((e) => e.type === "strength").length;
-          return (
-            <div key={d.id} style={{ background: C.surface, border: `1px solid ${isSug ? C.gold + "66" : C.line}`, borderRadius: 16, position: "relative", overflow: "hidden" }}>
-              {isSug && <div style={{ position: "absolute", top: 0, left: 0, width: 3, height: "100%", background: C.gold, zIndex: 1 }} />}
-              <button onClick={() => onStart(d.id, null)} className="flex items-center justify-between" style={{ width: "100%", textAlign: "left", background: "transparent", border: "none", padding: "18px", cursor: "pointer", color: C.text }}>
-                <div>
-                  <div className="flex items-center gap-2" style={{ marginBottom: 4 }}>
-                    <span style={{ ...display, fontSize: 22 }}>Einheit {i + 1}</span>
-                    {isSug && <Pill color={C.gold} bg={C.goldSoft}>empfohlen</Pill>}
-                  </div>
-                  {d.label && <div style={{ ...body, fontSize: 13, color: C.muted }}>{d.label}</div>}
-                  <div style={{ ...body, fontSize: 11, color: C.muted, marginTop: 6 }}>{strength} Kraftübungen · {d.exercises.length} gesamt</div>
-                </div>
-                <Play size={20} color={C.gold} />
-              </button>
-              <div className="flex items-center" style={{ borderTop: `1px solid ${C.line}` }}>
-                <ActBtn icon={Pencil} label="Bearbeiten" onClick={() => onEditDay(d.id)} />
-                <ActBtn icon={CopyPlus} label="Duplizieren" onClick={() => onDuplicateDay(d.id)} />
-                <ActBtn icon={Trash2} label="Löschen" danger onClick={() => setConfirmDel(d.id)} />
-              </div>
-              {confirmDel === d.id && (
-                <div className="flex items-center justify-between" style={{ background: C.claySoft, padding: "10px 14px", borderTop: `1px solid ${C.clay}44` }}>
-                  <span style={{ ...body, fontSize: 13, color: C.text }}>Einheit wirklich löschen?</span>
-                  <div className="flex gap-2">
-                    <button onClick={() => setConfirmDel(null)} style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: `1px solid ${C.line}`, padding: "5px 12px", borderRadius: 8, cursor: "pointer" }}>Nein</button>
-                    <button onClick={() => { onDeleteDay(d.id); setConfirmDel(null); }} style={{ ...body, fontSize: 12, color: "#0e0f12", background: C.clay, border: "none", padding: "5px 12px", borderRadius: 8, cursor: "pointer", fontWeight: 600 }}>Löschen</button>
-                  </div>
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-      {planLogs.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>Verlauf</div>
-          <div className="flex flex-col gap-2">
-            {planLogs.slice(0, 5).map((s, i) => {
-              const vol = s.entries.reduce((a, e) => a + volumeOf(e), 0);
-              const over = s.entries.filter((e) => e.evaluation === "uebertroffen").length;
-              return (
-                <div key={i} className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 14px" }}>
-                  <div style={{ ...body, fontSize: 13 }}>{s.dayName.split("·")[0].trim()}<span style={{ color: C.muted }}> · {s.dateISO.slice(8, 10)}.{s.dateISO.slice(5, 7)}.</span></div>
-                  <div className="flex items-center gap-3" style={{ ...body, fontSize: 12, color: C.muted }}>
-                    {over > 0 && <span style={{ color: C.mint }}>{over}× ↑</span>}<span>{vol.toLocaleString("de-DE")} kg</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, resumable && /*#__PURE__*/React.createElement("button", {
+    onClick: () => onStart(resumable.dayId, resumable),
+    className: "flex items-center justify-between",
+    style: {
+      width: "100%",
+      background: C.goldSoft,
+      border: `1px solid ${C.gold}55`,
+      borderRadius: 14,
+      padding: "14px 16px",
+      marginBottom: 16,
+      cursor: "pointer",
+      color: C.text
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "text-left"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.gold,
+      fontWeight: 700,
+      letterSpacing: "0.08em",
+      textTransform: "uppercase"
+    }
+  }, "Offene Einheit"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14
+    }
+  }, resumable.dayName, " — ", resumable.entries.length, " Übungen erfasst")), /*#__PURE__*/React.createElement(Play, {
+    size: 20,
+    color: C.gold
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 14
+    }
+  }, last ? `Zuletzt: ${last.dayName.split("·")[0].trim()} am ${last.dateISO.slice(8, 10)}.${last.dateISO.slice(5, 7)}. — heute dran:` : "Wähle deine Einheit:"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col gap-3"
+  }, plan.days.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.muted,
+      background: C.surface,
+      border: `1px dashed ${C.line}`,
+      borderRadius: 14,
+      padding: "20px 16px",
+      textAlign: "center"
+    }
+  }, "Keine Einheiten mehr in diesem Plan. Über „Bibliothek → Bearbeiten\" eine neue Einheit hinzufügen."), plan.days.map((d, i) => {
+    const isSug = d.id === suggestedDay && plan.days.length > 1;
+    const strength = d.exercises.filter(e => e.type === "strength").length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: d.id,
+      style: {
+        background: C.surface,
+        border: `1px solid ${isSug ? C.gold + "66" : C.line}`,
+        borderRadius: 16,
+        position: "relative",
+        overflow: "hidden"
+      }
+    }, isSug && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: 3,
+        height: "100%",
+        background: C.gold,
+        zIndex: 1
+      }
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: () => onStart(d.id, null),
+      className: "flex items-center justify-between",
+      style: {
+        width: "100%",
+        textAlign: "left",
+        background: "transparent",
+        border: "none",
+        padding: "18px",
+        cursor: "pointer",
+        color: C.text
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2",
+      style: {
+        marginBottom: 4
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...display,
+        fontSize: 22
+      }
+    }, "Einheit ", i + 1), isSug && /*#__PURE__*/React.createElement(Pill, {
+      color: C.gold,
+      bg: C.goldSoft
+    }, "empfohlen")), d.label && /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 13,
+        color: C.muted
+      }
+    }, d.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 11,
+        color: C.muted,
+        marginTop: 6
+      }
+    }, strength, " Kraftübungen · ", d.exercises.length, " gesamt")), /*#__PURE__*/React.createElement(Play, {
+      size: 20,
+      color: C.gold
+    })), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center",
+      style: {
+        borderTop: `1px solid ${C.line}`
+      }
+    }, /*#__PURE__*/React.createElement(ActBtn, {
+      icon: Pencil,
+      label: "Bearbeiten",
+      onClick: () => onEditDay(d.id)
+    }), /*#__PURE__*/React.createElement(ActBtn, {
+      icon: CopyPlus,
+      label: "Duplizieren",
+      onClick: () => onDuplicateDay(d.id)
+    }), /*#__PURE__*/React.createElement(ActBtn, {
+      icon: Trash2,
+      label: "Löschen",
+      danger: true,
+      onClick: () => setConfirmDel(d.id)
+    })), confirmDel === d.id && /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center justify-between",
+      style: {
+        background: C.claySoft,
+        padding: "10px 14px",
+        borderTop: `1px solid ${C.clay}44`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        ...body,
+        fontSize: 13,
+        color: C.text
+      }
+    }, "Einheit wirklich löschen?"), /*#__PURE__*/React.createElement("div", {
+      className: "flex gap-2"
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => setConfirmDel(null),
+      style: {
+        ...body,
+        fontSize: 12,
+        color: C.muted,
+        background: "transparent",
+        border: `1px solid ${C.line}`,
+        padding: "5px 12px",
+        borderRadius: 8,
+        cursor: "pointer"
+      }
+    }, "Nein"), /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        onDeleteDay(d.id);
+        setConfirmDel(null);
+      },
+      style: {
+        ...body,
+        fontSize: 12,
+        color: "#0e0f12",
+        background: C.clay,
+        border: "none",
+        padding: "5px 12px",
+        borderRadius: 8,
+        cursor: "pointer",
+        fontWeight: 600
+      }
+    }, "Löschen"))));
+  })), planLogs.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      marginBottom: 10
+    }
+  }, "Verlauf"), /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col gap-2"
+  }, planLogs.slice(0, 5).map((s, i) => {
+    const vol = s.entries.reduce((a, e) => a + volumeOf(e), 0);
+    const over = s.entries.filter(e => e.evaluation === "uebertroffen").length;
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      className: "flex items-center justify-between",
+      style: {
+        background: C.surface,
+        border: `1px solid ${C.line}`,
+        borderRadius: 10,
+        padding: "10px 14px"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 13
+      }
+    }, s.dayName.split("·")[0].trim(), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: C.muted
+      }
+    }, " · ", s.dateISO.slice(8, 10), ".", s.dateISO.slice(5, 7), ".")), /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-3",
+      style: {
+        ...body,
+        fontSize: 12,
+        color: C.muted
+      }
+    }, over > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: C.mint
+      }
+    }, over, "× ↑"), /*#__PURE__*/React.createElement("span", null, vol.toLocaleString("de-DE"), " kg")));
+  }))));
 }
 
 /* ============================================================
    WORKOUT-FLOW (Satz für Satz)
    ============================================================ */
-function NavBar({ onBack, label, onForward, color = C.gold }) {
-  return (
-    <div className="flex items-center gap-3" style={{ marginTop: 22 }}>
-      <button onClick={onBack} aria-label="Zurück" style={{ width: 54, height: 54, borderRadius: 14, border: `1px solid ${C.line}`, background: C.surface2, color: C.muted, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", flexShrink: 0 }}>
-        <ChevronLeft size={22} />
-      </button>
-      <button onClick={onForward} className="flex items-center justify-center gap-2" style={{ flex: 1, background: color, color: "#0e0f12", border: "none", borderRadius: 14, padding: "17px", cursor: "pointer", ...display, fontSize: 17, letterSpacing: "0.02em" }}>
-        {label} <ArrowRight size={18} />
-      </button>
-    </div>
-  );
+function NavBar({
+  onBack,
+  label,
+  onForward,
+  color = C.gold
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3",
+    style: {
+      marginTop: 22
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    "aria-label": "Zurück",
+    style: {
+      width: 54,
+      height: 54,
+      borderRadius: 14,
+      border: `1px solid ${C.line}`,
+      background: C.surface2,
+      color: C.muted,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      cursor: "pointer",
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(ChevronLeft, {
+    size: 22
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: onForward,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      flex: 1,
+      background: color,
+      color: "#0e0f12",
+      border: "none",
+      borderRadius: 14,
+      padding: "17px",
+      cursor: "pointer",
+      ...display,
+      fontSize: 17,
+      letterSpacing: "0.02em"
+    }
+  }, label, " ", /*#__PURE__*/React.createElement(ArrowRight, {
+    size: 18
+  })));
 }
-
-function Timer({ mode, seconds = 0, label, onTick }) {
+function Timer({
+  mode,
+  seconds = 0,
+  label,
+  onTick
+}) {
   const [t, setT] = useState(mode === "down" ? seconds : 0);
   useEffect(() => {
-    const i = setInterval(() => setT((x) => (mode === "down" ? x - 1 : x + 1)), 1000);
+    const i = setInterval(() => setT(x => mode === "down" ? x - 1 : x + 1), 1000);
     return () => clearInterval(i);
   }, []);
-  useEffect(() => { if (onTick) onTick(mode === "down" ? seconds - t : t); }, [t]);
+  useEffect(() => {
+    if (onTick) onTick(mode === "down" ? seconds - t : t);
+  }, [t]);
   const over = mode === "down" && t < 0;
   const shown = Math.abs(t);
   const mm = Math.floor(shown / 60);
   const ss = String(shown % 60).padStart(2, "0");
   const col = over ? C.clay : mode === "down" ? C.gold : C.text;
-  return (
-    <div style={{ textAlign: "center" }}>
-      <div style={{ ...display, fontSize: 64, lineHeight: 1, color: col, transition: "color .3s" }}>{over ? "+" : ""}{mm}:{ss}</div>
-      {label && <div style={{ ...body, fontSize: 12, color: C.muted, marginTop: 6 }}>{over ? "über Soll" : label}</div>}
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 64,
+      lineHeight: 1,
+      color: col,
+      transition: "color .3s"
+    }
+  }, over ? "+" : "", mm, ":", ss), label && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      marginTop: 6
+    }
+  }, over ? "über Soll" : label));
 }
-
-function EditRow({ label, children }) {
-  return <div className="flex items-center justify-between" style={{ marginTop: 10 }}><span style={{ ...body, fontSize: 13, color: C.muted }}>{label}</span>{children}</div>;
+function EditRow({
+  label,
+  children
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted
+    }
+  }, label), children);
 }
-
-function ExOverview({ ex, idx, total, updateTarget, onBack, onBegin }) {
+function ExOverview({
+  ex,
+  idx,
+  total,
+  updateTarget,
+  onBack,
+  onBegin
+}) {
   const [edit, setEdit] = useState(false);
   const [draft, setDraft] = useState(null);
-  const set = (patch) => setDraft((d) => ({ ...d, ...patch }));
+  const set = patch => setDraft(d => ({
+    ...d,
+    ...patch
+  }));
   function openEdit() {
-    if (ex.type === "duration") setDraft({ minutes: ex.minutes });
-    else if (ex.type === "strength") setDraft({ category: ex.category || "compound", sets: ex.sets, repsMin: ex.repsMin, repsMax: ex.repsMax, weight: ex.weight });
-    else setDraft({ sets: ex.sets, seconds: ex.seconds });
+    if (ex.type === "duration") setDraft({
+      minutes: ex.minutes
+    });else if (ex.type === "strength") setDraft({
+      category: ex.category || "compound",
+      sets: ex.sets,
+      repsMin: ex.repsMin,
+      repsMax: ex.repsMax,
+      weight: ex.weight
+    });else setDraft({
+      sets: ex.sets,
+      seconds: ex.seconds
+    });
     setEdit(true);
   }
-  function save() { updateTarget(draft); setEdit(false); }
-  return (
-    <div className="rise">
-      <div style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>
-        Übung {idx + 1} / {total}{ex.optional ? " · optional" : ""}
-      </div>
-      <h1 style={{ ...display, fontSize: 38, lineHeight: 1.02, margin: "0 0 12px" }}>{ex.name}</h1>
-      {ex.desc && <p style={{ ...body, fontSize: 14, color: C.muted, margin: "0 0 8px" }}>{ex.desc}</p>}
-      {ex.hint && (
-        <div className="flex items-start gap-2" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 10, padding: "10px 12px", marginBottom: 18 }}>
-          <Flame size={15} color={C.gold} style={{ marginTop: 1, flexShrink: 0 }} /><span style={{ ...body, fontSize: 13, color: C.text }}>{ex.hint}</span>
-        </div>
-      )}
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: 18, textAlign: "center" }}>
-        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 10 }}>Soll</div>
-        {ex.type === "duration" && <div style={{ ...display, fontSize: 40 }}>{ex.minutes}<span style={{ fontSize: 18, color: C.muted }}> min</span></div>}
-        {ex.type === "strength" && <div style={{ ...display, fontSize: 32 }}>{ex.sets} × {ex.repsMin}–{ex.repsMax}<span style={{ fontSize: 17, color: C.muted }}> @ {ex.weight} kg</span></div>}
-        {ex.type === "hold" && <div style={{ ...display, fontSize: 38 }}>{ex.sets} × {ex.seconds}<span style={{ fontSize: 18, color: C.muted }}> s</span></div>}
-        <button onClick={openEdit} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.gold, background: "transparent", border: "none", cursor: "pointer", margin: "12px auto 0" }}>
-          <Pencil size={13} /> Soll anpassen
-        </button>
-      </div>
-      <NavBar onBack={onBack} label="Beginnen" onForward={onBegin} />
-
-      {edit && draft && (
-        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.62)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50, padding: 20 }}>
-          <div className="pop" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 18, padding: "22px 20px", width: "100%", maxWidth: 340 }}>
-            <div style={{ ...display, fontSize: 20, marginBottom: 2 }}>Soll anpassen</div>
-            <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 12 }}>{ex.name}</div>
-            {ex.type === "duration" && <EditRow label="Dauer"><Stepper value={draft.minutes} step={5} onChange={(v) => set({ minutes: v })} suffix="min" /></EditRow>}
-            {ex.type === "strength" && (<>
-              <EditRow label="Sätze"><Stepper value={draft.sets} min={1} onChange={(v) => set({ sets: v })} /></EditRow>
-              <EditRow label="Wdh. min"><Stepper value={draft.repsMin} min={1} onChange={(v) => set({ repsMin: v })} /></EditRow>
-              <EditRow label="Wdh. max"><Stepper value={draft.repsMax} min={1} onChange={(v) => set({ repsMax: v })} /></EditRow>
-              <EditRow label="Gewicht"><Stepper value={draft.weight} step={2.5} onChange={(v) => set({ weight: v })} suffix="kg" /></EditRow>
-              <EditRow label="Kategorie">
-                <div className="flex gap-1">
-                  {[["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => (
-                    <button key={c} onClick={() => set({ category: c })} style={{ ...body, fontSize: 12, fontWeight: 600, padding: "5px 11px", borderRadius: 7, cursor: "pointer", border: `1px solid ${draft.category === c ? C.gold : C.line}`, background: draft.category === c ? C.goldSoft : "transparent", color: draft.category === c ? C.gold : C.muted }}>{l}</button>
-                  ))}
-                </div>
-              </EditRow>
-            </>)}
-            {ex.type === "hold" && (<>
-              <EditRow label="Sätze"><Stepper value={draft.sets} min={1} onChange={(v) => set({ sets: v })} /></EditRow>
-              <EditRow label="Sekunden"><Stepper value={draft.seconds} step={5} onChange={(v) => set({ seconds: v })} suffix="s" /></EditRow>
-            </>)}
-            <div className="flex gap-3" style={{ marginTop: 20 }}>
-              <button onClick={() => setEdit(false)} style={{ flex: 1, ...body, fontSize: 15, color: C.text, background: "transparent", border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer" }}>Abbrechen</button>
-              <button onClick={save} style={{ flex: 1, ...display, fontSize: 16, color: "#0e0f12", background: C.gold, border: "none", borderRadius: 12, padding: "13px", cursor: "pointer" }}>Speichern</button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+  function save() {
+    updateTarget(draft);
+    setEdit(false);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase",
+      marginBottom: 8
+    }
+  }, "Übung ", idx + 1, " / ", total, ex.optional ? " · optional" : ""), /*#__PURE__*/React.createElement("h1", {
+    style: {
+      ...display,
+      fontSize: 38,
+      lineHeight: 1.02,
+      margin: "0 0 12px"
+    }
+  }, ex.name), ex.desc && /*#__PURE__*/React.createElement("p", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.muted,
+      margin: "0 0 8px"
+    }
+  }, ex.desc), ex.hint && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-start gap-2",
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: "10px 12px",
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement(Flame, {
+    size: 15,
+    color: C.gold,
+    style: {
+      marginTop: 1,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.text
+    }
+  }, ex.hint)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 16,
+      padding: 18,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 10
+    }
+  }, "Soll"), ex.type === "duration" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 40
+    }
+  }, ex.minutes, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      color: C.muted
+    }
+  }, " min")), ex.type === "strength" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 32
+    }
+  }, ex.sets, " × ", ex.repsMin, "–", ex.repsMax, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 17,
+      color: C.muted
+    }
+  }, " @ ", ex.weight, " kg")), ex.type === "hold" && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 38
+    }
+  }, ex.sets, " × ", ex.seconds, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      color: C.muted
+    }
+  }, " s")), /*#__PURE__*/React.createElement("button", {
+    onClick: openEdit,
+    className: "flex items-center gap-1",
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.gold,
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      margin: "12px auto 0"
+    }
+  }, /*#__PURE__*/React.createElement(Pencil, {
+    size: 13
+  }), " Soll anpassen")), /*#__PURE__*/React.createElement(NavBar, {
+    onBack: onBack,
+    label: "Beginnen",
+    onForward: onBegin
+  }), edit && draft && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "fixed",
+      inset: 0,
+      background: "rgba(0,0,0,.62)",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      zIndex: 50,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pop",
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 18,
+      padding: "22px 20px",
+      width: "100%",
+      maxWidth: 340
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 20,
+      marginBottom: 2
+    }
+  }, "Soll anpassen"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      marginBottom: 12
+    }
+  }, ex.name), ex.type === "duration" && /*#__PURE__*/React.createElement(EditRow, {
+    label: "Dauer"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.minutes,
+    step: 5,
+    onChange: v => set({
+      minutes: v
+    }),
+    suffix: "min"
+  })), ex.type === "strength" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(EditRow, {
+    label: "Sätze"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.sets,
+    min: 1,
+    onChange: v => set({
+      sets: v
+    })
+  })), /*#__PURE__*/React.createElement(EditRow, {
+    label: "Wdh. min"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.repsMin,
+    min: 1,
+    onChange: v => set({
+      repsMin: v
+    })
+  })), /*#__PURE__*/React.createElement(EditRow, {
+    label: "Wdh. max"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.repsMax,
+    min: 1,
+    onChange: v => set({
+      repsMax: v
+    })
+  })), /*#__PURE__*/React.createElement(EditRow, {
+    label: "Gewicht"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.weight,
+    step: 2.5,
+    onChange: v => set({
+      weight: v
+    }),
+    suffix: "kg"
+  })), /*#__PURE__*/React.createElement(EditRow, {
+    label: "Kategorie"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-1"
+  }, [["compound", "Compound"], ["isolation", "Isolation"]].map(([c, l]) => /*#__PURE__*/React.createElement("button", {
+    key: c,
+    onClick: () => set({
+      category: c
+    }),
+    style: {
+      ...body,
+      fontSize: 12,
+      fontWeight: 600,
+      padding: "5px 11px",
+      borderRadius: 7,
+      cursor: "pointer",
+      border: `1px solid ${draft.category === c ? C.gold : C.line}`,
+      background: draft.category === c ? C.goldSoft : "transparent",
+      color: draft.category === c ? C.gold : C.muted
+    }
+  }, l))))), ex.type === "hold" && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(EditRow, {
+    label: "Sätze"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.sets,
+    min: 1,
+    onChange: v => set({
+      sets: v
+    })
+  })), /*#__PURE__*/React.createElement(EditRow, {
+    label: "Sekunden"
+  }, /*#__PURE__*/React.createElement(Stepper, {
+    value: draft.seconds,
+    step: 5,
+    onChange: v => set({
+      seconds: v
+    }),
+    suffix: "s"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-3",
+    style: {
+      marginTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEdit(false),
+    style: {
+      flex: 1,
+      ...body,
+      fontSize: 15,
+      color: C.text,
+      background: "transparent",
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer"
+    }
+  }, "Abbrechen"), /*#__PURE__*/React.createElement("button", {
+    onClick: save,
+    style: {
+      flex: 1,
+      ...display,
+      fontSize: 16,
+      color: "#0e0f12",
+      background: C.gold,
+      border: "none",
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer"
+    }
+  }, "Speichern")))));
 }
-
-function NoteField({ value, onChange }) {
+function NoteField({
+  value,
+  onChange
+}) {
   const [open, setOpen] = useState(!!value);
-  if (!open) return (
-    <button onClick={() => setOpen(true)} className="flex items-center gap-1" style={{ ...body, fontSize: 12, color: C.muted, background: "transparent", border: "none", cursor: "pointer", marginBottom: 2 }}>
-      <Plus size={13} /> Notiz
-    </button>
-  );
-  return <input value={value} onChange={(e) => onChange(e.target.value)} placeholder="Notiz zum Satz" style={{ ...inputStyle, marginBottom: 4, fontSize: 13 }} />;
+  if (!open) return /*#__PURE__*/React.createElement("button", {
+    onClick: () => setOpen(true),
+    className: "flex items-center gap-1",
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      background: "transparent",
+      border: "none",
+      cursor: "pointer",
+      marginBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement(Plus, {
+    size: 13
+  }), " Notiz");
+  return /*#__PURE__*/React.createElement("input", {
+    value: value,
+    onChange: e => onChange(e.target.value),
+    placeholder: "Notiz zum Satz",
+    style: {
+      ...inputStyle,
+      marginBottom: 4,
+      fontSize: 13
+    }
+  });
 }
-
-function ExRun({ ex, setIdx, curSet, setCurSet, lastEntry, onBack, onCommit }) {
+function ExRun({
+  ex,
+  setIdx,
+  curSet,
+  setCurSet,
+  lastEntry,
+  onBack,
+  onCommit
+}) {
   const elapsedRef = useRef(0);
   if (ex.type === "duration") {
-    return (
-      <div className="rise" style={{ textAlign: "center" }}>
-        <div style={{ ...display, fontSize: 26, marginBottom: 4 }}>{ex.name}</div>
-        <div style={{ ...body, fontSize: 13, color: C.muted, marginBottom: 28 }}>Soll: {ex.minutes} min</div>
-        <Timer mode="down" seconds={ex.minutes * 60} label="läuft" onTick={(e) => { elapsedRef.current = e; }} />
-        <NavBar onBack={onBack} label="Beenden" onForward={() => onCommit(elapsedRef.current)} />
-      </div>
-    );
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rise",
+      style: {
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...display,
+        fontSize: 26,
+        marginBottom: 4
+      }
+    }, ex.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 13,
+        color: C.muted,
+        marginBottom: 28
+      }
+    }, "Soll: ", ex.minutes, " min"), /*#__PURE__*/React.createElement(Timer, {
+      mode: "down",
+      seconds: ex.minutes * 60,
+      label: "läuft",
+      onTick: e => {
+        elapsedRef.current = e;
+      }
+    }), /*#__PURE__*/React.createElement(NavBar, {
+      onBack: onBack,
+      label: "Beenden",
+      onForward: () => onCommit(elapsedRef.current)
+    }));
   }
   if (!curSet) return null;
   const isLastSet = setIdx + 1 >= ex.sets;
   const la = lastEntry && Array.isArray(lastEntry.actual) ? lastEntry.actual[setIdx] : null;
-  const upd = (patch) => setCurSet({ ...curSet, ...patch });
-  return (
-    <div className="rise">
-      <div className="flex items-center justify-between" style={{ marginBottom: 14 }}>
-        <span style={{ ...body, fontSize: 11, color: C.muted, letterSpacing: "0.1em", textTransform: "uppercase" }}>{ex.name}</span>
-        <span style={{ ...display, fontSize: 15, color: C.gold }}>Satz {setIdx + 1} / {ex.sets}</span>
-      </div>
-      <div style={{ marginBottom: 16 }}><Timer mode="up" label="Satzdauer" /></div>
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 18px", marginBottom: 14, textAlign: "center" }}>
-        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>Soll</div>
-        {ex.type === "hold"
-          ? <div style={{ ...display, fontSize: 30 }}>{ex.seconds} s</div>
-          : <div style={{ ...display, fontSize: 28 }}>{ex.repsMin}–{ex.repsMax} <span style={{ fontSize: 15, color: C.muted }}>Wdh @ {ex.weight} kg</span></div>}
-        {la && <div style={{ ...body, fontSize: 11, color: C.muted, marginTop: 4 }}>letztes Mal: {ex.type === "hold" ? `${la.seconds}s` : `${la.reps}@${la.weight}`}</div>}
-      </div>
-      <div className="flex items-center justify-around" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "12px", marginBottom: 14 }}>
-        {ex.type === "hold" ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>SEKUNDEN</div>
-            <Stepper value={curSet.seconds} step={5} onChange={(v) => upd({ seconds: v })} />
-          </div>
-        ) : (<>
-          <div style={{ textAlign: "center" }}>
-            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>WDH</div>
-            <Stepper value={curSet.reps} onChange={(v) => upd({ reps: v })} />
-          </div>
-          <div style={{ width: 1, height: 40, background: C.line }} />
-          <div style={{ textAlign: "center" }}>
-            <div style={{ ...body, fontSize: 10, color: C.muted, marginBottom: 4 }}>KG</div>
-            <Stepper value={curSet.weight} step={2.5} onChange={(v) => upd({ weight: v })} />
-          </div>
-        </>)}
-      </div>
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 8 }}>Wie nah am Limit?</div>
-        <div className="flex gap-2">
-          {EFFORT_ORDER.map((k) => {
-            const e = EFFORT[k]; const on = curSet.effort === k;
-            return (
-              <button key={k} onClick={() => upd({ effort: k })} style={{ flex: 1, background: on ? e.color + "22" : "transparent", border: `1px solid ${on ? e.color : C.line}`, borderRadius: 12, padding: "10px 4px", cursor: "pointer", textAlign: "center" }}>
-                <div style={{ ...body, fontSize: 13, fontWeight: 600, color: on ? e.color : C.text }}>{e.label}</div>
-                <div style={{ ...body, fontSize: 10, color: C.muted, marginTop: 2 }}>{e.sub}</div>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-      <NoteField value={curSet.note} onChange={(v) => upd({ note: v })} />
-      <NavBar onBack={onBack} label={isLastSet ? "Beenden" : "Weiter"} onForward={onCommit} />
-    </div>
-  );
+  const upd = patch => setCurSet({
+    ...curSet,
+    ...patch
+  });
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      letterSpacing: "0.1em",
+      textTransform: "uppercase"
+    }
+  }, ex.name), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...display,
+      fontSize: 15,
+      color: C.gold
+    }
+  }, "Satz ", setIdx + 1, " / ", ex.sets)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement(Timer, {
+    mode: "up",
+    label: "Satzdauer"
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 16,
+      padding: "14px 18px",
+      marginBottom: 14,
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 4
+    }
+  }, "Soll"), ex.type === "hold" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 30
+    }
+  }, ex.seconds, " s") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 28
+    }
+  }, ex.repsMin, "–", ex.repsMax, " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: C.muted
+    }
+  }, "Wdh @ ", ex.weight, " kg")), la && /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      marginTop: 4
+    }
+  }, "letztes Mal: ", ex.type === "hold" ? `${la.seconds}s` : `${la.reps}@${la.weight}`)), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-around",
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 16,
+      padding: "12px",
+      marginBottom: 14
+    }
+  }, ex.type === "hold" ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 10,
+      color: C.muted,
+      marginBottom: 4
+    }
+  }, "SEKUNDEN"), /*#__PURE__*/React.createElement(Stepper, {
+    value: curSet.seconds,
+    step: 5,
+    onChange: v => upd({
+      seconds: v
+    })
+  })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 10,
+      color: C.muted,
+      marginBottom: 4
+    }
+  }, "WDH"), /*#__PURE__*/React.createElement(Stepper, {
+    value: curSet.reps,
+    onChange: v => upd({
+      reps: v
+    })
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 1,
+      height: 40,
+      background: C.line
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 10,
+      color: C.muted,
+      marginBottom: 4
+    }
+  }, "KG"), /*#__PURE__*/React.createElement(Stepper, {
+    value: curSet.weight,
+    step: 2.5,
+    onChange: v => upd({
+      weight: v
+    })
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 8
+    }
+  }, "Wie nah am Limit?"), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2"
+  }, EFFORT_ORDER.map(k => {
+    const e = EFFORT[k];
+    const on = curSet.effort === k;
+    return /*#__PURE__*/React.createElement("button", {
+      key: k,
+      onClick: () => upd({
+        effort: k
+      }),
+      style: {
+        flex: 1,
+        background: on ? e.color + "22" : "transparent",
+        border: `1px solid ${on ? e.color : C.line}`,
+        borderRadius: 12,
+        padding: "10px 4px",
+        cursor: "pointer",
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 13,
+        fontWeight: 600,
+        color: on ? e.color : C.text
+      }
+    }, e.label), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 10,
+        color: C.muted,
+        marginTop: 2
+      }
+    }, e.sub));
+  }))), /*#__PURE__*/React.createElement(NoteField, {
+    value: curSet.note,
+    onChange: v => upd({
+      note: v
+    })
+  }), /*#__PURE__*/React.createElement(NavBar, {
+    onBack: onBack,
+    label: isLastSet ? "Beenden" : "Weiter",
+    onForward: onCommit
+  }));
 }
-
-function SetRest({ seconds, nextLabel, onBack, onNext }) {
-  return (
-    <div className="rise" style={{ textAlign: "center", paddingTop: 6 }}>
-      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 22 }}>Satzpause</div>
-      <Timer mode="down" seconds={seconds} label={`${fmtDur(seconds)} Pause`} />
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginTop: 24 }}>
-        <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Als Nächstes</div>
-        <div style={{ ...body, fontSize: 15, color: C.text }}>{nextLabel}</div>
-      </div>
-      <NavBar onBack={onBack} label="Weiter" onForward={onNext} />
-    </div>
-  );
+function SetRest({
+  seconds,
+  nextLabel,
+  onBack,
+  onNext
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise",
+    style: {
+      textAlign: "center",
+      paddingTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      letterSpacing: "0.14em",
+      textTransform: "uppercase",
+      marginBottom: 22
+    }
+  }, "Satzpause"), /*#__PURE__*/React.createElement(Timer, {
+    mode: "down",
+    seconds: seconds,
+    label: `${fmtDur(seconds)} Pause`
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginTop: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 3
+    }
+  }, "Als Nächstes"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 15,
+      color: C.text
+    }
+  }, nextLabel)), /*#__PURE__*/React.createElement(NavBar, {
+    onBack: onBack,
+    label: "Weiter",
+    onForward: onNext
+  }));
 }
-
-function ExResult({ entry, onBack, onNext, isLast }) {
+function ExResult({
+  entry,
+  onBack,
+  onNext,
+  isLast
+}) {
   if (entry.type === "duration") {
     const r = durationResult(entry.target.minutes, entry.actual.seconds);
     const col = r.ok ? C.gold : C.clay;
-    return (
-      <div className="rise" style={{ textAlign: "center", paddingTop: 8 }}>
-        <div className="pop" style={{ width: 80, height: 80, borderRadius: "50%", background: r.ok ? C.goldSoft : C.claySoft, border: `2px solid ${col}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "8px auto 16px" }}>{r.ok ? <Check size={38} color={col} /> : <X size={38} color={col} />}</div>
-        <div style={{ ...display, fontSize: 28, marginBottom: 2 }}>{entry.name}</div>
-        <div style={{ ...display, fontSize: 22, color: col, marginBottom: 6 }}>{fmtDur(r.elapsedSec)}</div>
-        <div style={{ ...body, fontSize: 14, color: C.muted, marginBottom: 20 }}>{r.sub}</div>
-        <NavBar onBack={onBack} label={isLast ? "Auswertung" : "Weiter"} onForward={onNext} />
-      </div>
-    );
+    return /*#__PURE__*/React.createElement("div", {
+      className: "rise",
+      style: {
+        textAlign: "center",
+        paddingTop: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "pop",
+      style: {
+        width: 80,
+        height: 80,
+        borderRadius: "50%",
+        background: r.ok ? C.goldSoft : C.claySoft,
+        border: `2px solid ${col}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        margin: "8px auto 16px"
+      }
+    }, r.ok ? /*#__PURE__*/React.createElement(Check, {
+      size: 38,
+      color: col
+    }) : /*#__PURE__*/React.createElement(X, {
+      size: 38,
+      color: col
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...display,
+        fontSize: 28,
+        marginBottom: 2
+      }
+    }, entry.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...display,
+        fontSize: 22,
+        color: col,
+        marginBottom: 6
+      }
+    }, fmtDur(r.elapsedSec)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 14,
+        color: C.muted,
+        marginBottom: 20
+      }
+    }, r.sub), /*#__PURE__*/React.createElement(NavBar, {
+      onBack: onBack,
+      label: isLast ? "Auswertung" : "Weiter",
+      onForward: onNext
+    }));
   }
   const st = stimulus(entry.score);
   const vol = volumeOf(entry);
-  return (
-    <div className="rise">
-      <div style={{ textAlign: "center", marginBottom: 14 }}>
-        <div style={{ ...body, fontSize: 10, color: C.muted, textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 2 }}>Reizintensität</div>
-        <div className="pop" style={{ ...display, fontSize: 56, color: st.color, lineHeight: 1 }}>{entry.score}<span style={{ fontSize: 24 }}>%</span></div>
-        <div style={{ ...display, fontSize: 22, color: st.color, marginTop: 4 }}>{st.label}</div>
-        <div style={{ ...body, fontSize: 15, color: C.text, marginTop: 6 }}>{entry.name}</div>
-      </div>
-      <div style={{ marginBottom: 16, padding: "0 4px" }}>
-        <div style={{ position: "relative", height: 12, borderRadius: 6, background: `linear-gradient(90deg, ${C.clay} 0%, ${C.clay} 12%, ${C.gold} 42%, ${C.mint} 80%, ${C.mint} 90%, ${C.gold} 100%)` }}>
-          <div style={{ position: "absolute", left: `${Math.max(0, Math.min(100, entry.score))}%`, top: -4, bottom: -4, width: 3, background: "#fff", borderRadius: 2, transform: "translateX(-50%)", boxShadow: "0 0 5px rgba(0,0,0,.55)" }} />
-        </div>
-        <div style={{ position: "relative", height: 12, marginTop: 5, ...body, fontSize: 9, color: C.muted, letterSpacing: "0.04em", textTransform: "uppercase" }}>
-          <span style={{ position: "absolute", left: 0 }}>zu wenig</span>
-          <span style={{ position: "absolute", left: "85%", transform: "translateX(-50%)", color: C.mint }}>optimal</span>
-          <span style={{ position: "absolute", right: 0 }}>zu viel</span>
-        </div>
-      </div>
-      <div style={{ ...body, fontSize: 13, color: C.muted, textAlign: "center", marginBottom: 16, padding: "0 8px" }}>{st.hint}</div>
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 16, padding: "14px 16px" }}>
-        {entry.actual.map((s, i) => (
-          <div key={i} className="flex items-center justify-between" style={{ padding: "7px 0", borderBottom: i < entry.actual.length - 1 ? `1px solid ${C.line}` : "none" }}>
-            <span style={{ ...display, fontSize: 14, color: C.muted, width: 52 }}>Satz {i + 1}</span>
-            <span style={{ ...body, fontSize: 14, color: C.text, flex: 1, textAlign: "center" }}>{entry.type === "hold" ? `${s.seconds}s` : `${s.reps} × ${s.weight} kg`}</span>
-            <span style={{ ...body, fontSize: 11, color: (EFFORT[s.effort] || EFFORT.fordernd).color, fontWeight: 600, width: 72, textAlign: "right" }}>{(EFFORT[s.effort] || EFFORT.fordernd).label}</span>
-          </div>
-        ))}
-        {entry.type === "strength" && (
-          <div className="flex items-center justify-between" style={{ paddingTop: 9, marginTop: 2, borderTop: `1px solid ${C.line}` }}>
-            <span style={{ ...body, fontSize: 12, color: C.muted, textTransform: "uppercase", letterSpacing: "0.06em" }}>Volumen</span>
-            <span style={{ ...body, fontSize: 14, color: C.gold, fontWeight: 700 }}>{vol.toLocaleString("de-DE")} kg</span>
-          </div>
-        )}
-      </div>
-      <NavBar onBack={onBack} label={isLast ? "Auswertung" : "Weiter"} onForward={onNext} />
-    </div>
-  );
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 10,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.12em",
+      marginBottom: 2
+    }
+  }, "Reizintensität"), /*#__PURE__*/React.createElement("div", {
+    className: "pop",
+    style: {
+      ...display,
+      fontSize: 56,
+      color: st.color,
+      lineHeight: 1
+    }
+  }, entry.score, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 24
+    }
+  }, "%")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 22,
+      color: st.color,
+      marginTop: 4
+    }
+  }, st.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 15,
+      color: C.text,
+      marginTop: 6
+    }
+  }, entry.name)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 16,
+      padding: "0 4px"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      height: 12,
+      borderRadius: 6,
+      background: `linear-gradient(90deg, ${C.clay} 0%, ${C.clay} 12%, ${C.gold} 42%, ${C.mint} 80%, ${C.mint} 90%, ${C.gold} 100%)`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "absolute",
+      left: `${Math.max(0, Math.min(100, entry.score))}%`,
+      top: -4,
+      bottom: -4,
+      width: 3,
+      background: "#fff",
+      borderRadius: 2,
+      transform: "translateX(-50%)",
+      boxShadow: "0 0 5px rgba(0,0,0,.55)"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: "relative",
+      height: 12,
+      marginTop: 5,
+      ...body,
+      fontSize: 9,
+      color: C.muted,
+      letterSpacing: "0.04em",
+      textTransform: "uppercase"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "absolute",
+      left: 0
+    }
+  }, "zu wenig"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "absolute",
+      left: "85%",
+      transform: "translateX(-50%)",
+      color: C.mint
+    }
+  }, "optimal"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      position: "absolute",
+      right: 0
+    }
+  }, "zu viel"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.muted,
+      textAlign: "center",
+      marginBottom: 16,
+      padding: "0 8px"
+    }
+  }, st.hint), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 16,
+      padding: "14px 16px"
+    }
+  }, entry.actual.map((s, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    className: "flex items-center justify-between",
+    style: {
+      padding: "7px 0",
+      borderBottom: i < entry.actual.length - 1 ? `1px solid ${C.line}` : "none"
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...display,
+      fontSize: 14,
+      color: C.muted,
+      width: 52
+    }
+  }, "Satz ", i + 1), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.text,
+      flex: 1,
+      textAlign: "center"
+    }
+  }, entry.type === "hold" ? `${s.seconds}s` : `${s.reps} × ${s.weight} kg`), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: (EFFORT[s.effort] || EFFORT.fordernd).color,
+      fontWeight: 600,
+      width: 72,
+      textAlign: "right"
+    }
+  }, (EFFORT[s.effort] || EFFORT.fordernd).label))), entry.type === "strength" && /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      paddingTop: 9,
+      marginTop: 2,
+      borderTop: `1px solid ${C.line}`
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em"
+    }
+  }, "Volumen"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.gold,
+      fontWeight: 700
+    }
+  }, vol.toLocaleString("de-DE"), " kg"))), /*#__PURE__*/React.createElement(NavBar, {
+    onBack: onBack,
+    label: isLast ? "Auswertung" : "Weiter",
+    onForward: onNext
+  }));
 }
-
-function ExRest({ seconds, nextEx, onBack, onNext }) {
-  return (
-    <div className="rise" style={{ textAlign: "center", paddingTop: 6 }}>
-      <div style={{ ...body, fontSize: 12, color: C.muted, letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 22 }}>Übungspause</div>
-      <Timer mode="down" seconds={seconds} label={`${fmtDur(seconds)} Pause`} />
-      {nextEx && (
-        <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 12, padding: "12px 14px", marginTop: 24 }}>
-          <div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Nächste Übung</div>
-          <div style={{ ...body, fontSize: 15, color: C.text }}>{nextEx.name}</div>
-        </div>
-      )}
-      <NavBar onBack={onBack} label="Weiter" onForward={onNext} />
-    </div>
-  );
+function ExRest({
+  seconds,
+  nextEx,
+  onBack,
+  onNext
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise",
+    style: {
+      textAlign: "center",
+      paddingTop: 6
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.muted,
+      letterSpacing: "0.14em",
+      textTransform: "uppercase",
+      marginBottom: 22
+    }
+  }, "Übungspause"), /*#__PURE__*/React.createElement(Timer, {
+    mode: "down",
+    seconds: seconds,
+    label: `${fmtDur(seconds)} Pause`
+  }), nextEx && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "12px 14px",
+      marginTop: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 3
+    }
+  }, "Nächste Übung"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 15,
+      color: C.text
+    }
+  }, nextEx.name)), /*#__PURE__*/React.createElement(NavBar, {
+    onBack: onBack,
+    label: "Weiter",
+    onForward: onNext
+  }));
 }
 
 /* ============================================================
    SUMMARY
    ============================================================ */
-function Summary({ plan, dayId, entries, logs, onReset, onLibrary }) {
+function Summary({
+  plan,
+  dayId,
+  entries,
+  logs,
+  onReset,
+  onLibrary
+}) {
   const [copied, setCopied] = useState(false);
-  const day = plan.days.find((d) => d.id === dayId);
-  const order = plan.days.map((d) => d.id);
+  const day = plan.days.find(d => d.id === dayId);
+  const order = plan.days.map(d => d.id);
   const dayIdx = order.indexOf(dayId);
   const dayName = unitTitle(dayIdx, day.label);
   const nextIdx = plan.days.length > 1 ? (dayIdx + 1) % order.length : dayIdx;
   const nextDay = plan.days[nextIdx];
   const nextName = unitTitle(nextIdx, nextDay.label);
-  const counts = { uebertroffen: 0, erreicht: 0, verfehlt: 0 };
-  entries.forEach((e) => { if (counts[e.evaluation] !== undefined) counts[e.evaluation]++; });
+  const counts = {
+    uebertroffen: 0,
+    erreicht: 0,
+    verfehlt: 0
+  };
+  entries.forEach(e => {
+    if (counts[e.evaluation] !== undefined) counts[e.evaluation]++;
+  });
   const vol = entries.reduce((a, e) => a + volumeOf(e), 0);
-  const prev = logs.slice(1).find((s) => s.planId === plan.id && s.dayId === dayId);
+  const prev = logs.slice(1).find(s => s.planId === plan.id && s.dayId === dayId);
   const prevVol = prev ? prev.entries.reduce((a, e) => a + volumeOf(e), 0) : null;
   const volDelta = prevVol != null ? vol - prevVol : null;
-  const tips = entries.filter((e) => e.evaluation === "uebertroffen" && e.type === "strength");
-  const text = buildExport({ planName: plan.name, dayName, dateISO: new Date().toISOString(), entries });
-  function copy() { try { navigator.clipboard.writeText(text); } catch {} setCopied(true); setTimeout(() => setCopied(false), 2200); }
-  return (
-    <div className="rise">
-      <div style={{ textAlign: "center", marginBottom: 24 }}>
-        <div className="pop" style={{ width: 76, height: 76, borderRadius: "50%", background: C.goldSoft, border: `2px solid ${C.gold}`, display: "flex", alignItems: "center", justifyContent: "center", margin: "4px auto 14px" }}><Trophy size={36} color={C.gold} /></div>
-        <div style={{ ...display, fontSize: 30, marginBottom: 4 }}>Geschafft.</div>
-        <div style={{ ...body, fontSize: 14, color: C.muted }}>{dayName} abgeschlossen</div>
-      </div>
-      <div className="flex gap-2" style={{ marginBottom: 14 }}>
-        {[["uebertroffen", counts.uebertroffen], ["erreicht", counts.erreicht], ["verfehlt", counts.verfehlt]].map(([k, n]) => {
-          const m = EVAL_META[k];
-          return <div key={k} style={{ flex: 1, background: C.surface, border: `1px solid ${m.color}33`, borderRadius: 14, padding: "14px 6px", textAlign: "center" }}><div style={{ ...display, fontSize: 30, color: m.color, lineHeight: 1 }}>{n}</div><div style={{ ...body, fontSize: 10, color: C.muted, marginTop: 4, textTransform: "uppercase", letterSpacing: "0.05em" }}>{m.label}</div></div>;
-        })}
-      </div>
-      <div className="flex items-center justify-between" style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 18px", marginBottom: 14 }}>
-        <div><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em" }}>Gesamtvolumen</div><div style={{ ...display, fontSize: 26 }}>{vol.toLocaleString("de-DE")} <span style={{ fontSize: 15, color: C.muted }}>kg</span></div></div>
-        {volDelta != null && <div style={{ textAlign: "right" }}><div style={{ ...body, fontSize: 11, color: C.muted }}>vs. letztes Mal</div><div style={{ ...display, fontSize: 20, color: volDelta >= 0 ? C.mint : C.clay }}>{volDelta >= 0 ? "+" : ""}{volDelta.toLocaleString("de-DE")} kg</div></div>}
-      </div>
-      {tips.length > 0 && (
-        <div style={{ background: C.mintSoft, border: `1px solid ${C.mint}44`, borderRadius: 14, padding: "14px 16px", marginBottom: 14 }}>
-          <div className="flex items-center gap-2" style={{ marginBottom: 8 }}><Activity size={15} color={C.mint} /><span style={{ ...body, fontSize: 12, color: C.mint, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>Nächstes Mal hochgehen</span></div>
-          {tips.map((e) => <div key={e.exerciseId} style={{ ...body, fontSize: 13, color: C.text, padding: "2px 0" }}>• {e.name}</div>)}
-        </div>
-      )}
-      <div style={{ background: C.surface, border: `1px solid ${C.line}`, borderRadius: 14, padding: "14px 16px", marginBottom: 18 }}><div style={{ ...body, fontSize: 11, color: C.muted, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Nächste Einheit</div><div style={{ ...body, fontSize: 15 }}>{nextName}</div></div>
-      <div style={{ background: C.surface2, border: `1px dashed ${C.gold}55`, borderRadius: 14, padding: 16, marginBottom: 16 }}>
-        <div style={{ ...body, fontSize: 13, color: C.text, marginBottom: 10 }}>Daten an <span style={{ color: C.gold, fontWeight: 700 }}>Jarvis</span> — kopieren und in den Chat einfügen, dann landet's in Notion.</div>
-        <button onClick={copy} className="flex items-center justify-center gap-2" style={{ width: "100%", background: copied ? C.mint : C.gold, color: "#0e0f12", border: "none", borderRadius: 12, padding: "13px", cursor: "pointer", ...display, fontSize: 15, marginBottom: 10 }}>{copied ? <><Check size={17} /> Kopiert</> : <><Copy size={17} /> Log kopieren</>}</button>
-        <textarea readOnly value={text} style={{ width: "100%", height: 120, background: C.bg, color: C.muted, border: `1px solid ${C.line}`, borderRadius: 10, padding: 10, ...body, fontSize: 11, resize: "vertical" }} />
-      </div>
-      <div className="flex gap-3">
-        <button onClick={onReset} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.muted, border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer", ...body, fontSize: 14 }}><RotateCcw size={16} /> Plan-Start</button>
-        <button onClick={onLibrary} className="flex items-center justify-center gap-2" style={{ flex: 1, background: "transparent", color: C.muted, border: `1px solid ${C.line}`, borderRadius: 12, padding: "13px", cursor: "pointer", ...body, fontSize: 14 }}><Library size={16} /> Bibliothek</button>
-      </div>
-    </div>
-  );
+  const tips = entries.filter(e => e.evaluation === "uebertroffen" && e.type === "strength");
+  const text = buildExport({
+    planName: plan.name,
+    dayName,
+    dateISO: new Date().toISOString(),
+    entries
+  });
+  function copy() {
+    try {
+      navigator.clipboard.writeText(text);
+    } catch {}
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2200);
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: "rise"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "center",
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "pop",
+    style: {
+      width: 76,
+      height: 76,
+      borderRadius: "50%",
+      background: C.goldSoft,
+      border: `2px solid ${C.gold}`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      margin: "4px auto 14px"
+    }
+  }, /*#__PURE__*/React.createElement(Trophy, {
+    size: 36,
+    color: C.gold
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 30,
+      marginBottom: 4
+    }
+  }, "Geschafft."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 14,
+      color: C.muted
+    }
+  }, dayName, " abgeschlossen")), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-2",
+    style: {
+      marginBottom: 14
+    }
+  }, [["uebertroffen", counts.uebertroffen], ["erreicht", counts.erreicht], ["verfehlt", counts.verfehlt]].map(([k, n]) => {
+    const m = EVAL_META[k];
+    return /*#__PURE__*/React.createElement("div", {
+      key: k,
+      style: {
+        flex: 1,
+        background: C.surface,
+        border: `1px solid ${m.color}33`,
+        borderRadius: 14,
+        padding: "14px 6px",
+        textAlign: "center"
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...display,
+        fontSize: 30,
+        color: m.color,
+        lineHeight: 1
+      }
+    }, n), /*#__PURE__*/React.createElement("div", {
+      style: {
+        ...body,
+        fontSize: 10,
+        color: C.muted,
+        marginTop: 4,
+        textTransform: "uppercase",
+        letterSpacing: "0.05em"
+      }
+    }, m.label));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between",
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      padding: "14px 18px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em"
+    }
+  }, "Gesamtvolumen"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 26
+    }
+  }, vol.toLocaleString("de-DE"), " ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15,
+      color: C.muted
+    }
+  }, "kg"))), volDelta != null && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: "right"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted
+    }
+  }, "vs. letztes Mal"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...display,
+      fontSize: 20,
+      color: volDelta >= 0 ? C.mint : C.clay
+    }
+  }, volDelta >= 0 ? "+" : "", volDelta.toLocaleString("de-DE"), " kg"))), tips.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.mintSoft,
+      border: `1px solid ${C.mint}44`,
+      borderRadius: 14,
+      padding: "14px 16px",
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2",
+    style: {
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement(Activity, {
+    size: 15,
+    color: C.mint
+  }), /*#__PURE__*/React.createElement("span", {
+    style: {
+      ...body,
+      fontSize: 12,
+      color: C.mint,
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: "0.06em"
+    }
+  }, "Nächstes Mal hochgehen")), tips.map(e => /*#__PURE__*/React.createElement("div", {
+    key: e.exerciseId,
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.text,
+      padding: "2px 0"
+    }
+  }, "• ", e.name))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface,
+      border: `1px solid ${C.line}`,
+      borderRadius: 14,
+      padding: "14px 16px",
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 11,
+      color: C.muted,
+      textTransform: "uppercase",
+      letterSpacing: "0.08em",
+      marginBottom: 3
+    }
+  }, "Nächste Einheit"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 15
+    }
+  }, nextName)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: C.surface2,
+      border: `1px dashed ${C.gold}55`,
+      borderRadius: 14,
+      padding: 16,
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      ...body,
+      fontSize: 13,
+      color: C.text,
+      marginBottom: 10
+    }
+  }, "Daten an ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: C.gold,
+      fontWeight: 700
+    }
+  }, "Jarvis"), " — kopieren und in den Chat einfügen, dann landet's in Notion."), /*#__PURE__*/React.createElement("button", {
+    onClick: copy,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      width: "100%",
+      background: copied ? C.mint : C.gold,
+      color: "#0e0f12",
+      border: "none",
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer",
+      ...display,
+      fontSize: 15,
+      marginBottom: 10
+    }
+  }, copied ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Check, {
+    size: 17
+  }), " Kopiert") : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Copy, {
+    size: 17
+  }), " Log kopieren")), /*#__PURE__*/React.createElement("textarea", {
+    readOnly: true,
+    value: text,
+    style: {
+      width: "100%",
+      height: 120,
+      background: C.bg,
+      color: C.muted,
+      border: `1px solid ${C.line}`,
+      borderRadius: 10,
+      padding: 10,
+      ...body,
+      fontSize: 11,
+      resize: "vertical"
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "flex gap-3"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onReset,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      flex: 1,
+      background: "transparent",
+      color: C.muted,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer",
+      ...body,
+      fontSize: 14
+    }
+  }, /*#__PURE__*/React.createElement(RotateCcw, {
+    size: 16
+  }), " Plan-Start"), /*#__PURE__*/React.createElement("button", {
+    onClick: onLibrary,
+    className: "flex items-center justify-center gap-2",
+    style: {
+      flex: 1,
+      background: "transparent",
+      color: C.muted,
+      border: `1px solid ${C.line}`,
+      borderRadius: 12,
+      padding: "13px",
+      cursor: "pointer",
+      ...body,
+      fontSize: 14
+    }
+  }, /*#__PURE__*/React.createElement(Library, {
+    size: 16
+  }), " Bibliothek")));
 }
-
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(React.createElement(App));
+
 </script>
 </body>
 </html>
